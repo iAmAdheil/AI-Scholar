@@ -1,44 +1,35 @@
-import { Tabs } from 'expo-router'
+import { Stack } from 'expo-router'
 import React from 'react'
-import { HapticTab } from '@/components/ui/hapticTab'
-import TabBarBackground from '@/components/ui/tabBarBackground'
-import { Colors } from '@/constants/Colors'
 import { useColorScheme } from '@/hooks/useColorScheme'
 
 export default function TabLayout() {
     const colorScheme = useColorScheme()
 
     return (
-        <Tabs
+        <Stack
             screenOptions={{
-                tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
                 headerShown: false,
-                tabBarButton: HapticTab,
-                tabBarBackground: TabBarBackground,
-                tabBarStyle: {
-                    display: 'none',
-                },
-                animation: 'shift',
+                animation: 'slide_from_right',
             }}
         >
-            <Tabs.Screen
+            <Stack.Screen
                 name="index"
                 options={{
                     title: 'home',
                 }}
             />
-            <Tabs.Screen
+            <Stack.Screen
                 name="signin"
                 options={{
                     title: 'signin',
                 }}
             />
-            <Tabs.Screen
+            <Stack.Screen
                 name="otp"
                 options={{
                     title: 'otp',
                 }}
             />
-        </Tabs>
+        </Stack>
     )
 }

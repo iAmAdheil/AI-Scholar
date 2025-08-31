@@ -8,7 +8,7 @@ router.post('/signin', async (req, res, next) => {
     try {
         const { id } = req.body;
 
-        const user = await User.findOne({ id });
+        const user = await User.findOne({ fid: id });
 
         if (!user) {
             try {
