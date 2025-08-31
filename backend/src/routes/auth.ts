@@ -6,13 +6,13 @@ const router = Router();
 
 router.post('/signin', async (req, res, next) => {
     try {
-        const { id } = req.body;
+        const { fid } = req.body;
 
-        const user = await User.findOne({ fid: id });
+        const user = await User.findOne({ fid: fid });
 
         if (!user) {
             try {
-                const newUser = new User({ fid: id });
+                const newUser = new User({ fid: fid });
                 await newUser.save();
             } catch (error) {
                 res.status(500).json({
@@ -22,7 +22,7 @@ router.post('/signin', async (req, res, next) => {
             }
         }
 
-        const token = generateToken(id);
+        const token = generateToken(fid);
         if (!token) {
             throw new Error('Token generation failed');
         }

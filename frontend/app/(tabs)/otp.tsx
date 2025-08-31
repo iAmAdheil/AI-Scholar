@@ -14,7 +14,7 @@ import {
 import { OtpInput } from 'react-native-otp-entry'
 import { useFocusEffect, useRouter } from 'expo-router'
 import useConfirm from '@/store/confirm'
-import { storeToken } from '@/utils/store'
+import { storeToken } from '@/utils/token'
 
 function Input({
     disabled,
@@ -67,23 +67,22 @@ function Otp() {
 
     const handleOtpSubmit = async () => {
         try {
-            throw new Error('Confirmation not found')
-            // if (!confirm) {
-            //     throw new Error('Confirmation not found')
-            // }
-            // setLoading(true)
-            // const userCredential = await confirm.confirm(digits)
-            // if (!userCredential) {
-            //     throw new Error('User credential not found')
-            // }
-            // const result = await storeToken(userCredential.user.uid)
-            // if (result === 0) {
-            //     throw new Error('Failed to store token')
-            // }
-            // router.push('/')
+            if (!confirm) {
+                throw new Error('Confirmation not found')
+            }
+            setLoading(true)
+            const userCredential = await confirm.confirm(digits)
+            if (!userCredential) {
+                throw new Error('User credential not found')
+            }
+            const result = await storeToken(userCredential.user.uid)
+            if (result === 0) {
+                throw new Error('Failed to store token')
+            }
+            router.navigate('/(drawer)/chat')
         } catch (e: any) {
             console.log(e)
-            router.dismissTo('/(tabs)/signin')
+            router.back()
         }
     }
 

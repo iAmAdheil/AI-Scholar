@@ -9,12 +9,12 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
     }
 
     const payload = verifyToken(token);
-    if (!payload || !payload.id) {
+    if (!payload || !payload.fid) {
         res.status(401).json({ message: 'Unauthorized' });
         return;
     }
 
-    req.userId = payload.id;
+    req.fuserId = payload.fid;
     next();
 };
 

@@ -4,7 +4,7 @@ import {
     isSuccessResponse,
 } from '@react-native-google-signin/google-signin'
 import auth from '@react-native-firebase/auth'
-import { storeToken } from './store'
+import { storeToken } from './token'
 
 export const googleSignIn = async () => {
     try {

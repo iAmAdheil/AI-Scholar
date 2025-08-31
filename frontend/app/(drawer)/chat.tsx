@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
     SafeAreaView,
     View,
@@ -14,13 +14,8 @@ import { useHeaderHeight } from '@react-navigation/elements'
 import ChatWindow from '@/components/app/chatWindow'
 import EventSource from 'react-native-sse'
 import { Chunk, Message } from '@/types'
-
-const generateId = () => {
-    return (
-        Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15)
-    )
-}
+import { generateId } from '@/utils/generate'
+import { getToken } from '@/utils/token'
 
 function Chat() {
     const headerHeight = useHeaderHeight()
@@ -29,9 +24,17 @@ function Chat() {
     const es = useRef<EventSource | null>(null)
     const msgId = useRef<string | null>(null)
     const chatId = useRef<string | null>(null)
+    const token = useRef<string | null>(null)
 
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<Message[]>([])
+
+    useEffect(() => {
+        const handleToken = async () => {
+            token.current = await getToken()
+        }
+        handleToken()
+    }, [])
 
     const handleSSE = async () => {
         es.current?.addEventListener('open', () => {
@@ -92,7 +95,7 @@ function Chat() {
         const newMsg: Message = {
             id: newMsgId,
             response: '',
-            prompt: prompt,
+            prompt: prompt,			
         }
         setMessages((prevState) => [...prevState, newMsg])
         msgId.current = newMsgId
@@ -103,6 +106,7 @@ function Chat() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token.current}`,
                 },
                 body: JSON.stringify(payload),
             },

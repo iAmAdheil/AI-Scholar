@@ -11,7 +11,7 @@ const router = Router();
 
 router.post('/:id', async (req, res, next) => {
     try {
-        const userId = req.userId;
+        const fuserId = req.fuserId;
         const message = req.body.message;
         const chatId = req.params.id;
 
@@ -37,17 +37,14 @@ router.post('/:id', async (req, res, next) => {
             );
         }
 
-        const savedChatId = await saveMsg(
-            chatId,
-            userId || '',
+        const savedChatId = await saveMsg(       
+            fuserId || '',
             message,
-            generated
+            generated,
+			chatId || '',
         );
         if (!savedChatId) {
-            res.status(500).json({
-                message: 'Failed to save chat',
-            });
-            return;
+            throw new Error('Failed to save chat');
         }
 
         res.write(
@@ -57,12 +54,17 @@ router.post('/:id', async (req, res, next) => {
                 chatId: savedChatId,
             })}\n\n`
         );
-        res.end();
     } catch (e: any) {
-        console.log(e);
-        res.status(500).json({
-            message: 'Something went wrong',
-        });
+        console.error('Stream error:', e);
+        res.write(
+            `data: ${JSON.stringify({
+                error: e.message || 'An unexpected error occurred',
+                finished: true,
+                timestamp: Date.now(),
+            })}\n\n`
+        );
+    } finally {
+        res.end();
     }
 });
 

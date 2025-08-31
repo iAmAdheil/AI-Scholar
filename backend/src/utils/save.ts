@@ -1,17 +1,16 @@
 import Chat from '../models/chat';
 
 const saveMsg = async (
-    chatId: string,
-    userId: string,
+    fuserId: string,
     query: string,
-    response: string
+    response: string,
+    chatId?: string | null
 ) => {
     try {
-        const chat = await Chat.findOne({ _id: chatId, fuser: userId });
-        if (!chat) {
+        if (!chatId || chatId === 'null') {
             try {
                 const newChat = new Chat({
-                    fuser: userId,
+                    fuser: fuserId,
                     conversation: [
                         {
                             isUser: true,
@@ -23,24 +22,29 @@ const saveMsg = async (
                         },
                     ],
                 });
-                await newChat.save();
-                return newChat._id;
+                const savedChat = await newChat.save();
+                return savedChat._id;
             } catch (error) {
                 console.log(error);
                 return null;
             }
         }
 
-        chat.conversation.push({
-            isUser: true,
-            message: query,
-        });
-        await chat.save();
+        const chat = await Chat.findOne({ _id: chatId, fuser: fuserId });
+        if (!chat) {
+            return null;
+        }
 
-        chat.conversation.push({
-            isUser: false,
-            message: response,
-        });
+        chat.conversation.push(
+            {
+                isUser: true,
+                message: query,
+            },
+            {
+                isUser: false,
+                message: response,
+            }
+        );
         await chat.save();
 
         return chat._id;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
     View,
     SafeAreaView,
@@ -12,7 +12,7 @@ import {
     Keyboard,
     Platform,
 } from 'react-native'
-import { useRouter, usePathname } from 'expo-router'
+import { useRouter, usePathname, useFocusEffect } from 'expo-router'
 import { phoneSignIn, googleSignIn } from '@/utils/signin'
 import Feather from '@expo/vector-icons/Feather'
 import AntDesign from '@expo/vector-icons/AntDesign'

@@ -2,8 +2,7 @@ import mongoose from 'mongoose';
 
 const schema = new mongoose.Schema({
     fuser: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true,
     },
     conversation: [
