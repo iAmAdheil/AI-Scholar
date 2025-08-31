@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
     View,
     SafeAreaView,
@@ -14,6 +14,7 @@ import {
 import { OtpInput } from 'react-native-otp-entry'
 import { useFocusEffect, useRouter } from 'expo-router'
 import useConfirm from '@/store/confirm'
+import { storeToken } from '@/utils/store'
 
 function Input({
     disabled,
@@ -51,6 +52,10 @@ function Otp() {
 
     const [loading, setLoading] = useState(false)
 
+    const disabled = useMemo(() => {
+        return digits.length !== 6
+    }, [digits])
+
     useFocusEffect(
         useCallback(() => {
             return () => {
@@ -62,14 +67,23 @@ function Otp() {
 
     const handleOtpSubmit = async () => {
         try {
-            if (!confirm) {
-                throw new Error('Confirmation not found')
-            }
-            setLoading(true)
-            await confirm.confirm(digits)
-            router.push('/')
+            throw new Error('Confirmation not found')
+            // if (!confirm) {
+            //     throw new Error('Confirmation not found')
+            // }
+            // setLoading(true)
+            // const userCredential = await confirm.confirm(digits)
+            // if (!userCredential) {
+            //     throw new Error('User credential not found')
+            // }
+            // const result = await storeToken(userCredential.user.uid)
+            // if (result === 0) {
+            //     throw new Error('Failed to store token')
+            // }
+            // router.push('/')
         } catch (e: any) {
             console.log(e)
+            router.dismissTo('/(tabs)/signin')
         }
     }
 
@@ -92,13 +106,14 @@ function Otp() {
                             style={[
                                 styles.button,
                                 {
-                                    backgroundColor: !loading
-                                        ? '#1DA1F2'
-                                        : 'gray',
+                                    backgroundColor:
+                                        loading || disabled
+                                            ? 'gray'
+                                            : '#1DA1F2',
                                 },
                             ]}
                             className="flex flex-row items-center justify-center gap-6"
-                            disabled={loading}
+                            disabled={loading || disabled}
                         >
                             <Text style={[styles.buttonText]}>
                                 {!loading ? (

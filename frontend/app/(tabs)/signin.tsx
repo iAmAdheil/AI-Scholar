@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
     View,
     SafeAreaView,
@@ -13,12 +13,10 @@ import {
     Platform,
 } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
-import { useFocusEffect } from '@react-navigation/native'
-import { phoneSignIn } from '@/utils/auth/phoneSignIn'
+import { phoneSignIn, googleSignIn } from '@/utils/signin'
 import Feather from '@expo/vector-icons/Feather'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import useConfirm from '@/store/confirm'
-import { googleSignIn } from '@/utils/auth/googleSignIn'
 
 function Signin() {
     const pathname = usePathname()
@@ -30,14 +28,14 @@ function Signin() {
 
     const [mobile, setMobile] = useState<string>('')
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                setLoading(false)
-                setMobile('')
-            }
-        }, []),
-    )
+    const disabled = useMemo(() => {
+        return mobile.length !== 10
+    }, [mobile])
+
+    useEffect(() => {
+        setLoading(false)
+        setMobile('')
+    }, [])
 
     useEffect(() => {
         if (pathname === '/firebaseauth/link') {
@@ -53,7 +51,7 @@ function Signin() {
             const confirmation = await phoneSignIn(mobile)
             if (confirmation) {
                 updateConfirm(confirmation)
-                router.push('/otp')
+                router.push('/(tabs)/otp')
             }
         } catch (e: any) {
             alert('Something went wrong')
@@ -116,12 +114,13 @@ function Signin() {
                             style={[
                                 styles.button,
                                 {
-                                    backgroundColor: !loading
-                                        ? '#1DA1F2'
-                                        : 'gray',
+                                    backgroundColor:
+                                        loading || disabled
+                                            ? 'gray'
+                                            : '#1DA1F2',
                                 },
                             ]}
-                            disabled={loading}
+                            disabled={loading || disabled}
                         >
                             {!loading ? (
                                 <Text style={[styles.buttonText]}>

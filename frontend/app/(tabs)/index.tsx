@@ -1,14 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { router } from 'expo-router'
 import LinearGradientComponent from '@/components/ui/linearGradientComponent'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 function Home() {
+    // useEffect(() => {
+    //     const fetchToken = async () => {
+    //         const token = await AsyncStorage.getItem('token')
+    //         console.log(token)
+    //     }
+    //     fetchToken()
+    // }, [])
+
     return (
         <LinearGradientComponent>
             <View className="flex flex-col items-center justify-center">
                 <TouchableOpacity
-                    onPress={() => router.navigate('/signin')}
+                    onPress={() => router.push('/(tabs)/signin')}
                     className="mt-10 rounded-xl bg-cyan-500"
                 >
                     <Text className="text-lg px-8 py-4 text-white">

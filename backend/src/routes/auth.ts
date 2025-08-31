@@ -12,7 +12,7 @@ router.post('/signin', async (req, res, next) => {
 
         if (!user) {
             try {
-                const newUser = new User({ id });
+                const newUser = new User({ fid: id });
                 await newUser.save();
             } catch (error) {
                 res.status(500).json({
@@ -32,6 +32,7 @@ router.post('/signin', async (req, res, next) => {
             token,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             message:
                 error instanceof Error ? error.message : 'Something went wrong',
