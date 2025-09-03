@@ -1,8 +1,12 @@
 import { Drawer } from 'expo-router/drawer'
+import CustomDrawerContent from '@/components/app/sidebar'
 
 export default function DrawerLayout() {
     return (
-        <Drawer>
+        <Drawer
+            initialRouteName="chat"
+            drawerContent={(props) => <CustomDrawerContent props={props} />}
+        >
             <Drawer.Screen
                 name="chat"
                 options={{

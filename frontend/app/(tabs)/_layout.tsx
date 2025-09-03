@@ -1,12 +1,10 @@
 import { Stack } from 'expo-router'
 import React from 'react'
-import { useColorScheme } from '@/hooks/useColorScheme'
 
 export default function TabLayout() {
-    const colorScheme = useColorScheme()
-
     return (
         <Stack
+            initialRouteName="signin"
             screenOptions={{
                 headerShown: false,
                 animation: 'slide_from_right',
@@ -15,7 +13,7 @@ export default function TabLayout() {
             <Stack.Screen
                 name="index"
                 options={{
-                    title: 'home',
+                    title: 'index',
                 }}
             />
             <Stack.Screen

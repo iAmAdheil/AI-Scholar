@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { GoogleGenAI } from '@google/genai';
 import saveMsg from '../utils/save';
+import Chat from '../models/chat';
 
 // delete in the future
 const GEMINI_API_KEY = 'AIzaSyC-rE0Ggpz0AlNeYVC3aoJXBmz2j2YS9eI';
@@ -37,11 +38,11 @@ router.post('/:id', async (req, res, next) => {
             );
         }
 
-        const savedChatId = await saveMsg(       
+        const savedChatId = await saveMsg(
             fuserId || '',
             message,
             generated,
-			chatId || '',
+            chatId || ''
         );
         if (!savedChatId) {
             throw new Error('Failed to save chat');
@@ -65,6 +66,39 @@ router.post('/:id', async (req, res, next) => {
         );
     } finally {
         res.end();
+    }
+});
+
+router.get('/chat/:id', async (req, res, next) => {
+    try {
+        const chatId = req.params.id;
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            throw new Error('Chat not found');
+        }
+        res.json({
+            msg: 'Chat found successfully',
+            chat: chat,
+        });
+    } catch (e: any) {
+        console.log(e);
+        res.status(500).json({ message: e.message || 'Something went wrong' });
+    }
+});
+
+router.get('/chats', async (req, res, next) => {
+    try {
+        const fuserId = req.fuserId;
+        const chats = await Chat.find({ fuser: fuserId })
+            .sort({ createdAt: -1 })
+            .limit(10);
+        res.json({
+            msg: 'Chats found successfully',
+            chats: chats,
+        });
+    } catch (e: any) {
+        console.log(e);
+        res.status(500).json({ message: e.message || 'Something went wrong' });
     }
 });
 

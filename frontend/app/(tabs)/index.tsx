@@ -4,7 +4,7 @@ import { router } from 'expo-router'
 import LinearGradientComponent from '@/components/ui/linearGradientComponent'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-function Home() {
+function Index() {
     // useEffect(() => {
     //     const fetchToken = async () => {
     //         const token = await AsyncStorage.getItem('token')
@@ -29,7 +29,7 @@ function Home() {
     )
 }
 
-export default Home
+export default Index
 
 const styles = StyleSheet.create({
     logo: {

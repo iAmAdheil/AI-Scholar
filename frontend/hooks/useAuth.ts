@@ -1,33 +1,27 @@
 import { useState, useEffect } from 'react'
-import { auth } from '@/firebase-config'
-import { onAuthStateChanged } from 'firebase/auth'
+import auth from '@react-native-firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export const useAuth = () => {
-    const [loading, setLoading] = useState<boolean>(false)
-    const [userId, setUserId] = useState<string | null>(null)
-    const [email, setEmail] = useState<string>('')
+    const [loading, setLoading] = useState<boolean>(true)
+    const [route, setRoute] = useState<string>('(tabs)')
 
     useEffect(() => {
-        setLoading(true)
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = auth().onAuthStateChanged(async (user) => {
             if (user) {
-                setUserId(user.uid)
-                if (user.email) {
-                    setEmail(user.email)
-                }
+                setRoute('(drawer)')
             } else {
-                setUserId('NA')
+                setRoute('(tabs)')
+                await AsyncStorage.removeItem('token')
             }
             setLoading(false)
         })
 
-        // understand why and how this works
         return () => unsubscribe()
     }, [])
 
     return {
         loading,
-        userId,
-        email,
+        route,
     }
 }

@@ -25,6 +25,10 @@ const schema = new mongoose.Schema({
             },
         },
     ],
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
 const Chat = mongoose.model('Chat', schema);

@@ -1,42 +1,43 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
-import ky from 'ky'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import axios from 'axios'
 
-const BACKEND_URL = 'http://<your-IP>:3000'
-
-export function useChats(firebaseId: string | null) {
+export function useChats() {
+    const [loading, setLoading] = useState<boolean>(false)
     const [chats, setChats] = useState<any>(null)
-    const [loadChats, setLoadChats] = useState<boolean>(false)
 
     const fetchChats = async () => {
         try {
-            setLoadChats(true)
-            if (!firebaseId) {
-                const e = {
-                    msg: 'Could not detect valid user Id.',
-                }
-                throw e
+            setLoading(true)
+            const token = await AsyncStorage.getItem('token')
+            const res: any = await axios.get(
+                `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            )
+            if (res.status !== 200) {
+                throw new Error(res.data.message || 'Something went wrong')
             }
-            const res: any = await ky
-                .get(`${BACKEND_URL}/api/v1/user/chats/${firebaseId}`)
-                .json()
-            setChats(res.chats)
-        } catch (e) {
-            console.log(e)
+            console.log('chats fetched')
+            setChats(res.data.chats)
+        } catch (e: any) {
+            console.log(e.message || 'Something went wrong')
             setChats([])
         } finally {
-            setLoadChats(false)
+            setLoading(false)
         }
     }
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchChats()
-        }, [firebaseId])
-    )
+    useEffect(() => {
+        fetchChats()
+    }, [])
 
     return {
-        loadChats,
+        loading,
         chats,
     }
 }

@@ -38,7 +38,7 @@ function Input({
 
 const inputStyles = StyleSheet.create({
     pinCodeTextStyle: {
-        color: 'white',
+        color: 'black',
         fontSize: 24,
         fontWeight: '400',
     },
