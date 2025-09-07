@@ -1,34 +1,34 @@
 {
-    "expo": {
-        "scheme": "ai-animesh",
-        "userInterfaceStyle": "automatic",
-        "android": {
-            "edgeToEdgeEnabled": true,
-            "googleServicesFile": "./firebase/google-services.json",
-            "package": "com.AI.animesh"
-        },
-        "ios": {
-            "googleServicesFile": "./firebase/GoogleService-Info.plist",
-            "bundleIdentifier": "com.AI.animesh"
-        },
-        "plugins": [
-            "@react-native-firebase/app",
-            "@react-native-firebase/auth",
-            "@react-native-firebase/crashlytics",
-            [
-                "expo-build-properties",
-                {
-                    "ios": {
-                        "useFrameworks": "static"
-                    }
-                }
-            ],
-            [
-                "expo-dev-client",
-                {
-                    "launchMode": "most-recent"
-                }
-            ]
-        ]
-    }
+  "expo": {
+    "scheme": "ai-animesh",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./firebase/google-services.json",
+      "package": "com.AI.animesh"
+    },
+    "ios": {
+      "googleServicesFile": "./firebase/GoogleService-Info.plist",
+      "bundleIdentifier": "com.AI.animesh"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent"
+        }
+      ]
+    ]
+  }
 }

@@ -53,5 +53,5 @@
 
 // Placeholder component to prevent import errors
 export default function ActionSheetComponent() {
-    return null
+  return null;
 }

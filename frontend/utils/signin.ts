@@ -1,41 +1,41 @@
 import {
-    GoogleSignin,
-    isNoSavedCredentialFoundResponse,
-    isSuccessResponse,
-} from '@react-native-google-signin/google-signin'
-import auth from '@react-native-firebase/auth'
-import { storeToken } from './token'
+  GoogleSignin,
+  isNoSavedCredentialFoundResponse,
+  isSuccessResponse,
+} from "@react-native-google-signin/google-signin";
+import auth from "@react-native-firebase/auth";
+import { storeToken } from "./token";
 
 export const googleSignIn = async () => {
-    try {
-        const response = await GoogleSignin.signIn()
+  try {
+    const response = await GoogleSignin.signIn();
 
-        if (isNoSavedCredentialFoundResponse(response as any)) {
-            console.log('No saved credentials found')
-        }
-
-        if (isSuccessResponse(response)) {
-            const idToken = response.data.idToken
-
-            const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-            const userCredential =
-                await auth().signInWithCredential(googleCredential)
-            await storeToken(userCredential.user.uid)
-            console.log('Signed in to Firebase with Google')
-        }
-    } catch (error) {
-        console.error('Sign-in error:', error)
+    if (isNoSavedCredentialFoundResponse(response as any)) {
+      console.log("No saved credentials found");
     }
-}
+
+    if (isSuccessResponse(response)) {
+      const idToken = response.data.idToken;
+
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      const userCredential =
+        await auth().signInWithCredential(googleCredential);
+      await storeToken(userCredential.user.uid);
+      console.log("Signed in to Firebase with Google");
+    }
+  } catch (error) {
+    console.error("Sign-in error:", error);
+  }
+};
 
 export async function phoneSignIn(mobile: string) {
-    try {
-        const phone = `+91${mobile}`
-        console.log(phone)
-        auth().settings.appVerificationDisabledForTesting = true
-        const confirmation = await auth().signInWithPhoneNumber(phone)
-        return confirmation
-    } catch (e: any) {
-        console.log(e)
-    }
+  try {
+    const phone = `+91${mobile}`;
+    console.log(phone);
+    auth().settings.appVerificationDisabledForTesting = true;
+    const confirmation = await auth().signInWithPhoneNumber(phone);
+    return confirmation;
+  } catch (e: any) {
+    console.log(e);
+  }
 }
