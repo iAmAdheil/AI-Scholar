@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useRouter, usePathname } from "expo-router";
 import { useHeaderHeight } from "@react-navigation/elements";
 import ChatWindow from "@/components/app/chatWindow";
 import EventSource from "react-native-sse";

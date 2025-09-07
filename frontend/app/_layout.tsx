@@ -23,6 +23,8 @@ export default function RootLayout() {
   const { route, loading } = useAuth();
   const router = useRouter();
 
+  const [splashLoader, setSplashLoader] = useState(true);
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -40,7 +42,13 @@ export default function RootLayout() {
     }
   }, [route, loading]);
 
-  if (!loaded || loading) {
+  useEffect(() => {
+    setTimeout(() => {
+      setSplashLoader(false);
+    }, 1000);
+  }, []);
+
+  if (!loaded || loading || splashLoader) {
     return (
       <SafeAreaView className="flex-1">
         <View className="flex-1 justify-center items-center">
