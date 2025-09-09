@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const schema = new mongoose.Schema({
-    fid: {
-        type: String,
-        required: true,
-    },
+  fid: {
+    type: String,
+    required: true,
+  },
 });
 
 const User = mongoose.model('User', schema);
