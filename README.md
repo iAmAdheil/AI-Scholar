@@ -1,11 +1,13 @@
 # 🏥 LLM Performance Comparison in a Healthcare App
 
 ## 📌 Project Overview
+
 This project compares the performance of various **Large Language Models (LLMs)** integrated into a healthcare-focused app. It applies **software engineering principles** to evaluate LLMs across multiple metrics and platforms.
 
 ---
 
 ## 🎯 Application Use Case
+
 The app allows users to input **healthcare-related questions**, which are processed by both **cloud-based** and **local LLMs**, enabling a detailed **performance comparison**.
 
 ---
@@ -13,25 +15,30 @@ The app allows users to input **healthcare-related questions**, which are proces
 ## 🚀 Objectives
 
 ### 1️⃣ Develop the App
+
 - Build an interactive, secure app for healthcare-related chat with LLMs.
 - Include **cloud-based APIs** (e.g., OpenAI, Gemini, Claude, Grok) and **local models**.
 
 ### 2️⃣ Integrate Multiple LLMs
+
 - Compare models from:
   - **Cloud-based**: OpenAI (ChatGPT), Gemini, Claude, Grok.
   - **Local**: bioGPT, LLama-3.2 (1B).
 
 ### 3️⃣ Test Across Devices & Conditions
+
 - Evaluate performance on **mobile**, **laptop**, **cloud VMs**, and **edge devices**.
 - Simulate **varied network conditions** to test reliability and latency.
 
 ### 4️⃣ Measure Key Metrics
-- ⏱ **Response Time**  
+
+- ⏱ **Response Time**
 - 🎯 **Accuracy & Relevance**
 - 🧠 **Resource Usage** (CPU, RAM, GPU)
 - 🚧 **Latency & Delay Analysis**
 
 ### 5️⃣ Visualize Data
+
 - Collect and analyze results using **charts, graphs, and tables**.
 
 ---
@@ -39,28 +46,34 @@ The app allows users to input **healthcare-related questions**, which are proces
 ## 🛠️ Technologies Used
 
 ### 🔹 Primary Language
+
 - **TypeScript**
 
 ### 🔹 IDE
+
 - **Visual Studio Code (VSCode)**
 
 ### 🔹 Frontend
-- **React Native** – UI development  
-- **Zustand** – State management  
-- **Ky** – HTTP requests  
-- **Gluestick** – UI component library  
-- **Firebase Auth** – Authentication  
+
+- **React Native** – UI development
+- **Zustand** – State management
+- **Ky** – HTTP requests
+- **Gluestick** – UI component library
+- **Firebase Auth** – Authentication
 
 ### 🔹 Backend
-- **Express.js** – API and service handling  
-- **Mongoose (ORM)** – MongoDB interaction  
+
+- **Express.js** – API and service handling
+- **Mongoose (ORM)** – MongoDB interaction
 - **Axios** – Internal and external HTTP requests
 
 ### 🔹 Database
+
 - **MongoDB**
 
 ### 🔹 Microservices
-- **Express.js** – Microservice framework  
+
+- **Express.js** – Microservice framework
 - **LLM SDKs/APIs** – Official packages from OpenAI, Anthropic, Google, etc.
 
 ---
@@ -96,6 +109,7 @@ The app allows users to input **healthcare-related questions**, which are proces
 ## 🧱 Architecture Diagrams
 
 > ✅ Updated versions of the following diagrams are required:
+
 - Class Diagrams (Class & Class2)
 - Activity Diagram
 - State Diagram
@@ -103,6 +117,7 @@ The app allows users to input **healthcare-related questions**, which are proces
 - Sequence Diagram (with correct tools and tech stack)
 
 ### 🔁 Auth Flow (Activity/State Diagram)
+
 1. User opens the app → lands on homepage.
 2. Clicks button to go to form.
 3. If **not signed in** → auto redirected to **Sign-In** page.
@@ -110,20 +125,23 @@ The app allows users to input **healthcare-related questions**, which are proces
 ---
 
 ### 🔮 Future Enhancements
--  Expand into other industries like education, finance, legal.
 
--  Add support for new LLMs as they are released.
+- Expand into other industries like education, finance, legal.
 
--  Enhance the benchmarking engine for deeper analysis and automation.
+- Add support for new LLMs as they are released.
+
+- Enhance the benchmarking engine for deeper analysis and automation.
 
 ### 📚 License
+
 This project is licensed under the MIT License.
 
 ### 👥 Contributors
--  Adheil Gupta (23BDS002)
--  Arnav Gupta (23BDS009)
--  Atharva Agrawal (23BDS010)
--  Surya Narayana Rao (23BDS025)
+
+- Adheil Gupta (23BDS002)
+- Arnav Gupta (23BDS009)
+- Atharva Agrawal (23BDS010)
+- Surya Narayana Rao (23BDS025)
 
 # 🚀 Project Setup
 
@@ -209,7 +227,3 @@ npm install
 ```bash
 npm start
 ```
-
-
-
-
