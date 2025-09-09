@@ -31,7 +31,8 @@ function Index() {
 
   useEffect(() => {
     const handleToken = async () => {
-      token.current = await getToken();
+      const userToken = await getToken();
+      token.current = userToken;
     };
     handleToken();
   }, []);

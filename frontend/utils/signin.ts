@@ -20,7 +20,10 @@ export const googleSignIn = async () => {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       const userCredential =
         await auth().signInWithCredential(googleCredential);
-      await storeToken(userCredential.user.uid);
+      const result = await storeToken(userCredential.user.uid);
+			if (result === 0) {
+        throw new Error("Failed to store token");
+      }
       console.log("Signed in to Firebase with Google");
     }
   } catch (error) {

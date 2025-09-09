@@ -3,41 +3,44 @@ import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-export function useChats() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [chats, setChats] = useState<any>(null);
+export function useChats(fetch: boolean) {
+	const [loading, setLoading] = useState<boolean>(false);
+	const [chats, setChats] = useState<any>(null);
 
-  const fetchChats = async () => {
-    try {
-      setLoading(true);
-      const token = await AsyncStorage.getItem("token");
-      const res: any = await axios.get(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (res.status !== 200) {
-        throw new Error(res.data.message || "Something went wrong");
-      }
-      console.log("chats fetched");
-      setChats(res.data.chats);
-    } catch (e: any) {
-      console.log(e.message || "Something went wrong");
-      setChats([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+	const fetchChats = async () => {
+		try {
+			setLoading(true);
+			const token = await AsyncStorage.getItem("token");
+			const res: any = await axios.get(
+				`${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				},
+			);
+			if (res.status !== 200) {
+				throw new Error(res.data.message || "Something went wrong");
+			}
+			console.log("chats fetched");
+			console.log(res.data.chats);
+			setChats(res.data.chats);
+		} catch (e: any) {
+			console.log(e.message || "Something went wrong");
+			setChats([]);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  useEffect(() => {
-    fetchChats();
-  }, []);
+	useEffect(() => {
+		if (fetch) {
+			fetchChats();
+		}
+	}, [fetch]);
 
-  return {
-    loading,
-    chats,
-  };
+	return {
+		loading,
+		chats,
+	};
 }

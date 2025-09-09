@@ -1,6 +1,8 @@
+import { useCallback, useEffect, useState } from "react";
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
+  useDrawerStatus,
 } from "@react-navigation/drawer";
 import { Text, TouchableOpacity } from "react-native";
 import { useChats } from "@/hooks/useChats";
@@ -11,7 +13,15 @@ function CustomDrawerContent({
 }: {
   props: DrawerContentComponentProps;
 }) {
-  const { chats, loading } = useChats();
+  const [fetch, setFetch] = useState<boolean>(false);
+  const { chats, loading } = useChats(fetch);
+  const drawerStatus = useDrawerStatus();
+
+  useEffect(() => {
+    if (drawerStatus === "open") {
+      setFetch(true);
+    }
+  }, [drawerStatus]);
 
   return (
     <DrawerContentScrollView {...props}>
