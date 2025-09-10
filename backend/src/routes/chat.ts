@@ -69,23 +69,6 @@ router.post('/:id', async (req, res, next) => {
 	}
 });
 
-router.get('/chat/:id', async (req, res, next) => {
-	try {
-		const chatId = req.params.id;
-		const chat = await Chat.findById(chatId);
-		if (!chat) {
-			throw new Error('Chat not found');
-		}
-		res.json({
-			msg: 'Chat found successfully',
-			chat: chat,
-		});
-	} catch (e: any) {
-		console.log(e);
-		res.status(500).json({ message: e.message || 'Something went wrong' });
-	}
-});
-
 router.get('/chats', async (req, res, next) => {
 	try {
 		const fuserId = req.fuserId;
@@ -110,3 +93,20 @@ router.get('/chats', async (req, res, next) => {
 });
 
 export default router;
+
+router.get('/:id', async (req, res, next) => {
+	try {
+		const chatId = req.params.id;
+		const chat = await Chat.findById(chatId);
+		if (!chat) {
+			throw new Error('Chat not found');
+		}
+		res.json({
+			msg: 'Chat found successfully',
+			chat: chat,
+		});
+	} catch (e: any) {
+		console.log(e);
+		res.status(500).json({ message: e.message || 'Something went wrong' });
+	}
+});

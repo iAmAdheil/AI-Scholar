@@ -17,18 +17,75 @@ import { Chunk, Message } from "@/types";
 import { generateId } from "@/utils/generate";
 import { getToken } from "@/utils/token";
 import useChatId from "@/store/chatId";
+import axios from "axios";
+import { type Chat } from "@/types";
+
+const formatChat = (convo: Chat) => {
+  const messages = [];
+
+  for (let i = 0; i < convo.length / 2; i++) {
+    const msgId = generateId();
+
+    const promptMsg = convo[2 * i];
+    const resMsg = convo[2 * i + 1];
+    messages.push({
+      id: msgId,
+      response: resMsg.message,
+      prompt: promptMsg.message,
+    });
+  }
+
+  return { messages, lastMsgId: messages[messages.length - 1].id || "" };
+};
 
 function Index() {
   const headerHeight = useHeaderHeight();
+  const { chatId } = useChatId();
 
+  const [loadChat, setLoadChat] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const es = useRef<EventSource | null>(null);
   const msgId = useRef<string | null>(null);
-  const chatId = useRef<string | null>(null);
+  const chatIdRef = useRef<string | null>(null);
   const token = useRef<string | null>(null);
 
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    const fetchChat = async () => {
+      setLoadChat(true);
+      const userToken = await getToken();
+      try {
+        const res: any = await axios.get(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatId}`,
+          {
+            headers: { Authorization: `Bearer ${userToken}` },
+          },
+        );
+        const convo: Chat = res.data.chat.conversation || [];
+        const { messages, lastMsgId } = formatChat(convo);
+        setMessages(messages);
+        msgId.current = lastMsgId;
+      } catch (e: any) {
+        console.log(e);
+      } finally {
+        setLoadChat(false);
+      }
+    };
+    chatIdRef.current = chatId;
+    if (chatId) {
+      console.log("fetch Chat:", chatId);
+      fetchChat();
+    }
+
+    return () => {
+      msgId.current = null;
+      chatIdRef.current = null;
+      setMessages([]);
+    };
+  }, [chatId]);
 
   useEffect(() => {
     const handleToken = async () => {
@@ -56,7 +113,7 @@ function Index() {
             return [...prevState];
           }
         });
-        chatId.current = data.chatId || null;
+        chatIdRef.current = data.chatId || null;
         es.current?.close();
         return;
       }
@@ -103,7 +160,7 @@ function Index() {
     msgId.current = newMsgId;
 
     const newES = new EventSource(
-      `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatId.current}`,
+      `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatIdRef.current}`,
       {
         method: "POST",
         headers: {

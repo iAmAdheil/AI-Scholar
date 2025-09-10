@@ -4,7 +4,6 @@ import {
   DrawerContentScrollView,
   useDrawerStatus,
 } from "@react-navigation/drawer";
-import { useNavigation, DrawerActions } from "@react-navigation/native";
 import {
   Text,
   TouchableOpacity,
@@ -13,10 +12,12 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
+import useChatId from "@/store/chatId";
 import { useChats } from "@/hooks/useChats";
 import auth from "@react-native-firebase/auth";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Entypo from "@expo/vector-icons/Entypo";
+import { type Chats } from "@/types";
 
 function CustomDrawerContent({
   props,
@@ -26,6 +27,7 @@ function CustomDrawerContent({
   const [fetch, setFetch] = useState<boolean>(false);
   const { chats, loading } = useChats(fetch);
   const drawerStatus = useDrawerStatus();
+  const { updateChatId } = useChatId();
 
   useEffect(() => {
     if (drawerStatus === "open") {
@@ -37,6 +39,11 @@ function CustomDrawerContent({
 
   const closeDrawer = () => {
     props.navigation.closeDrawer();
+  };
+
+  const handleNewChat = () => {
+    updateChatId(null);
+    closeDrawer();
   };
 
   return (
@@ -51,12 +58,12 @@ function CustomDrawerContent({
         </TouchableOpacity> */}
         <TouchableOpacity
           style={sidebarStyles.newChatContainer}
-          onPress={() => closeDrawer()}
+          onPress={() => handleNewChat()}
         >
           <Entypo name="new-message" size={22} color="black" />
           <Text style={sidebarStyles.newChatText}>New Chat</Text>
         </TouchableOpacity>
-        <Chats chats={chats} loading={loading} />
+        <Chats chats={chats} loading={loading} closeDrawer={closeDrawer} />
         <Footer />
       </View>
     </DrawerContentScrollView>
@@ -86,7 +93,22 @@ const sidebarStyles = StyleSheet.create({
   },
 });
 
-function Chats({ chats, loading }: { chats: any; loading: boolean }) {
+function Chats({
+  chats,
+  loading,
+  closeDrawer,
+}: {
+  chats: Chats;
+  loading: boolean;
+  closeDrawer: () => void;
+}) {
+  const { updateChatId } = useChatId();
+
+  const handleChatPress = (chatId: string) => {
+    updateChatId(chatId);
+    closeDrawer();
+  };
+
   return (
     <ScrollView
       style={{ flex: 1 }}
@@ -99,7 +121,10 @@ function Chats({ chats, loading }: { chats: any; loading: boolean }) {
       ) : (
         chats.map((chat: any) => {
           return (
-            <TouchableOpacity key={chat._id}>
+            <TouchableOpacity
+              key={chat._id}
+              onPress={() => handleChatPress(chat._id)}
+            >
               <Text style={chatsStyles.titleText} className="line-clamp-1">
                 {chat.title}
               </Text>

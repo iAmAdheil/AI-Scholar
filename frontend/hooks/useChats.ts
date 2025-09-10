@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { Chats } from "@/types";
 
 export function useChats(fetch: boolean) {
 	const [loading, setLoading] = useState<boolean>(false);
-	const [chats, setChats] = useState<any>([]);
+	const [chats, setChats] = useState<Chats>([]);
 
 	const fetchChats = async () => {
 		try {
