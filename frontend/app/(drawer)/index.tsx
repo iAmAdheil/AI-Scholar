@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -183,7 +184,11 @@ function Index() {
     >
       <SafeAreaView className="flex-1">
         <View className="flex-1">
-          <ChatWindow messages={messages} msgId={msgId.current || ""} />
+          <ChatWindow
+            messages={messages}
+            msgId={msgId.current || ""}
+            loading={loadChat}
+          />
         </View>
         <View className="py-2 relative">
           <TextInput
@@ -203,7 +208,11 @@ function Index() {
               </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.sendContainer} onPress={handleSend}>
-              <AntDesign name="arrowup" size={20} color="white" />
+              {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <AntDesign name="arrowup" size={20} color="white" />
+              )}
             </TouchableOpacity>
           </View>
         </View>

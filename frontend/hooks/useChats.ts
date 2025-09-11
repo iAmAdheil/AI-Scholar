@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Chats } from "@/types";

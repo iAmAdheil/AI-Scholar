@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -19,9 +20,11 @@ const windowWidth = Dimensions.get("window").width;
 function ChatWindow({
   messages,
   msgId,
+  loading,
 }: {
   msgId: string;
   messages: MessageInterface[];
+  loading: boolean;
 }) {
   const flatListRef = useRef<FlatList>(null);
   const msgIdRef = useRef<string | null>(null);
@@ -42,10 +45,26 @@ function ChatWindow({
     const index = messages.findIndex((msg) => msg.id === msgIdRef.current);
     console.log("msg id", msgIdRef.current);
     console.log("index", index);
-    if (messages.length > 0 && index > -1) {
+    if (messages.length > 0 && index > -1 && !loading) {
       scrollToEnd(index);
     }
-  }, [messages]);
+  }, [messages, loading]);
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          width: windowWidth,
+          position: "relative",
+          alignContent: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="blue" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, width: windowWidth, position: "relative" }}>
