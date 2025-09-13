@@ -21,7 +21,6 @@ import { getToken } from "@/utils/token";
 import useChatId from "@/store/chatId";
 import axios from "axios";
 import { type Chat } from "@/types";
-import { useRouter } from "expo-router";
 
 const formatChat = (convo: Chat) => {
   const messages = [];
@@ -74,10 +73,12 @@ function Footer({
 
   const onSpeechStart = (event: any) => {
     console.log("Event:", event);
+    setIsRecording(true);
   };
 
   const onSpeechEnd = (event: any) => {
     console.log("Event:", event);
+    setIsRecording(false);
   };
 
   const onSpeechResults = (event: any) => {
@@ -143,7 +144,6 @@ function Footer({
 
 function Index() {
   const headerHeight = useHeaderHeight();
-  const router = useRouter();
   const { chatId } = useChatId();
 
   const [loadChat, setLoadChat] = useState(false);
