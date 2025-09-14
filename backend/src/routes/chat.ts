@@ -10,6 +10,76 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 const router = Router();
 
+router.post('/generate', async (req, res, next) => {
+	try {
+		const text = req.body.message;
+
+		res.setHeader('Content-Type', 'text/event-stream');
+		res.setHeader('Cache-Control', 'no-cache');
+		res.setHeader('Connection', 'keep-alive');
+		res.setHeader('X-Accel-Buffering', 'no');
+		res.flushHeaders();
+
+		let generated = ''
+
+		const fastApiUrl = 'http://localhost:8000/generate-response'; // Adjust URL as needed
+		const response = await fetch(fastApiUrl, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ text }),
+		});
+
+		if (!response.ok) {
+			throw new Error(`FastAPI error: ${response.statusText}`);
+		}
+
+		const reader = response.body?.getReader();
+		if (!reader) {
+			throw new Error('Failed to get response stream');
+		}
+
+		const decoder = new TextDecoder();
+		let buffer = '';
+
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+			const lines = buffer.split('\n\n');
+			buffer = lines.pop() || '';
+
+			for (const line of lines) {
+				if (line.startsWith('data: ')) {
+					const data = JSON.parse(line.slice(6));
+					if (data.error) {
+						throw new Error(data.error);
+					}
+					if (data.chunk) {
+						generated += data.chunk;
+						res.write(`data: ${JSON.stringify({ chunk: data.chunk, finished: false })}\n\n`);
+					}
+					if (data.finished) {
+						generated = data.entire_msg || generated;
+						res.write(`data: ${JSON.stringify({ chunk: data.entire_msg, finished: true })}\n\n`);
+					}
+				}
+			}
+		}
+	} catch (e: any) {
+		console.log(e)
+		res.write(
+			`data: ${JSON.stringify({
+				error: e.message || 'An unexpected error occurred',
+				finished: true,
+				timestamp: Date.now(),
+			})}\n\n`
+		);
+	} finally {
+		res.end()
+	}
+})
+
 router.post('/:id', async (req, res, next) => {
 	try {
 		const fuserId = req.fuserId;

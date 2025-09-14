@@ -14,21 +14,22 @@ dotenv.config();
 main().catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect(process.env.MONGODB_CONNECTION_STRING || '');
+	await mongoose.connect(process.env.MONGODB_CONNECTION_STRING || '');
 }
 
 app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res, next) => {
-  res.json({
-    msg: 'Hello World!',
-  });
+	res.json({
+		msg: 'Hello World!',
+	});
 });
 
 app.use('/auth', authRouter);
-app.use('/chat', Auth, chatRouter);
+// app.use('/chat', Auth, chatRouter);
+app.use('/chat', chatRouter);
 
 app.listen(3000, () => {
-  console.log('Listening on port 3000!');
+	console.log('Listening on port 3000!');
 });
