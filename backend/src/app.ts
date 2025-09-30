@@ -27,8 +27,7 @@ app.get('/', (req, res, next) => {
 });
 
 app.use('/auth', authRouter);
-// app.use('/chat', Auth, chatRouter);
-app.use('/chat', chatRouter);
+app.use('/chat', Auth, chatRouter);
 
 app.listen(3000, () => {
 	console.log('Listening on port 3000!');

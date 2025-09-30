@@ -43,8 +43,6 @@ function ChatWindow({
     };
 
     const index = messages.findIndex((msg) => msg.id === msgIdRef.current);
-    console.log("msg id", msgIdRef.current);
-    console.log("index", index);
     if (messages.length > 0 && index > -1 && !loading) {
       scrollToEnd(index);
     }

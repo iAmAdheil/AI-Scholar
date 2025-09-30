@@ -14,12 +14,6 @@ export default function DrawerLayout() {
           headerShown: true,
         }}
       />
-      <Drawer.Screen
-        name="chats"
-        options={{
-          title: "chats",
-        }}
-      />
     </Drawer>
   );
 }

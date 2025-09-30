@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import Voice from "@react-native-voice/voice";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -21,6 +22,7 @@ import { getToken } from "@/utils/token";
 import useChatId from "@/store/chatId";
 import axios from "axios";
 import { type Chat } from "@/types";
+import Tts from "react-native-tts";
 
 const formatChat = (convo: Chat) => {
   const messages = [];
@@ -45,11 +47,13 @@ function Footer({
   setPrompt,
   handleSend,
   loading,
+  chatId,
 }: {
   prompt: string;
   setPrompt: (value: string) => void;
   handleSend: () => void;
   loading: boolean;
+  chatId: string;
 }) {
   const [isRecording, setIsRecording] = useState(false);
 
@@ -65,11 +69,12 @@ function Footer({
 
     // Clean up
     return () => {
+      stopListening();
       Voice.destroy().then(() => {
         Voice.removeAllListeners();
       });
     };
-  }, []);
+  }, [chatId]);
 
   const onSpeechStart = (event: any) => {
     console.log("Event:", event);
@@ -127,16 +132,18 @@ function Footer({
         )}
         {isRecording && (
           <TouchableOpacity onPress={stopListening}>
-            <View className="w-6 h-6 bg-red-500 rounded-md" />
+            <View className="w-7 h-7 mb-1.5 mr-1 bg-red-500 rounded-md" />
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.sendContainer} onPress={handleSend}>
-          {loading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <AntDesign name="arrowup" size={20} color="white" />
-          )}
-        </TouchableOpacity>
+        {!isRecording && (
+          <TouchableOpacity style={styles.sendContainer} onPress={handleSend}>
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <AntDesign name="arrowup" size={20} color="white" />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -160,6 +167,7 @@ function Index() {
   useEffect(() => {
     const fetchChat = async () => {
       setLoadChat(true);
+      setPrompt("");
       const userToken = await getToken();
       try {
         const res: any = await axios.get(
@@ -275,8 +283,29 @@ function Index() {
       },
     );
 
+    console.log("User Token:", token.current);
+
     es.current = newES;
     await handleSSE();
+  };
+
+  useEffect(() => {
+    Tts.addEventListener("tts-start", (event) => {});
+    Tts.addEventListener("tts-progress", (event) => {});
+    Tts.addEventListener("tts-finish", (event) => {});
+    Tts.addEventListener("tts-cancel", (event) => {});
+
+    return () => {
+      stopTts();
+    };
+  }, [chatId]);
+
+  const startTts = (text: string) => {
+    Tts.speak(text);
+  };
+
+  const stopTts = () => {
+    Tts.stop(false);
   };
 
   return (
@@ -298,6 +327,7 @@ function Index() {
           setPrompt={setPrompt}
           handleSend={handleSend}
           loading={loading}
+          chatId={chatId || ""}
         />
       </SafeAreaView>
     </KeyboardAvoidingView>
