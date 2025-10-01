@@ -21,10 +21,16 @@ function ChatWindow({
   messages,
   msgId,
   loading,
+  playingId,
+  startTts,
+  stopTts,
 }: {
   msgId: string;
   messages: MessageInterface[];
   loading: boolean;
+  playingId: string | null;
+  startTts: (msgId: string, text: string) => void;
+  stopTts: () => void;
 }) {
   const flatListRef = useRef<FlatList>(null);
   const msgIdRef = useRef<string | null>(null);
@@ -92,16 +98,24 @@ function ChatWindow({
           <>
             <View className="my-1.5">
               <Message
+                id={item.id}
                 message={item.prompt}
                 isUser={true}
                 isStreaming={item.isStreaming}
+                playingId={playingId}
+                startTts={startTts}
+                stopTts={stopTts}
               />
             </View>
             <View className="my-1.5">
               <Message
+                id={item.id}
                 message={item.response}
                 isUser={false}
                 isStreaming={item.isStreaming}
+                playingId={playingId}
+                startTts={startTts}
+                stopTts={stopTts}
               />
             </View>
           </>
@@ -121,13 +135,21 @@ function ChatWindow({
 
 const Message = memo(
   ({
+    id,
     message,
     isUser,
     isStreaming,
+    playingId,
+    startTts,
+    stopTts,
   }: {
+    id: string;
     message: string;
     isUser: boolean;
     isStreaming: boolean;
+    playingId: string | null;
+    startTts: (msgId: string, text: string) => void;
+    stopTts: () => void;
   }) => {
     const markdownStyles = getStyles(isUser ? "white" : "black", 15.5);
 
@@ -172,7 +194,7 @@ const Message = memo(
           <TouchableOpacity>
             <Feather name="copy" size={15} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => startTts(id, message)}>
             <Ionicons name="volume-medium-outline" size={20} color="black" />
           </TouchableOpacity>
         </View>

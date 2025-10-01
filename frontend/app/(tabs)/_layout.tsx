@@ -4,7 +4,7 @@ import React from "react";
 export default function TabLayout() {
   return (
     <Stack
-      initialRouteName="signin"
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
         animation: "slide_from_right",

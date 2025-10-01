@@ -164,6 +164,8 @@ function Index() {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
 
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchChat = async () => {
       setLoadChat(true);
@@ -295,17 +297,20 @@ function Index() {
     Tts.addEventListener("tts-finish", (event) => {});
     Tts.addEventListener("tts-cancel", (event) => {});
 
-    return () => {
-      stopTts();
-    };
+    // return () => {
+    //   stopTts();
+    // };
   }, [chatId]);
 
-  const startTts = (text: string) => {
+  const startTts = (msgId: string, text: string) => {
     Tts.speak(text);
+    setPlayingId(msgId);
   };
 
-  const stopTts = () => {
-    Tts.stop(false);
+  const stopTts = async () => {
+    const result = await Tts.pause();
+    console.log(result);
+    setPlayingId(null);
   };
 
   return (
@@ -320,6 +325,9 @@ function Index() {
             messages={messages}
             msgId={msgId.current || ""}
             loading={loadChat}
+            playingId={playingId}
+            startTts={startTts}
+            stopTts={stopTts}
           />
         </View>
         <Footer
