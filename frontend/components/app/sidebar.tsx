@@ -64,7 +64,7 @@ function CustomDrawerContent({
           <Text style={sidebarStyles.newChatText}>New Chat</Text>
         </TouchableOpacity>
         <Chats chats={chats} loading={loading} closeDrawer={closeDrawer} />
-        <Footer />
+        {/* <Footer /> */}
       </View>
     </DrawerContentScrollView>
   );
@@ -154,45 +154,6 @@ const chatsStyles = StyleSheet.create({
   titleText: {
     fontSize: 16,
     fontWeight: "500",
-  },
-});
-
-function Footer() {
-  return (
-    <View style={footerStyles.container}>
-      <TouchableOpacity style={footerStyles.avatorContainer}>
-        <FontAwesome5 name="user-alt" size={15} color="white" />
-      </TouchableOpacity>
-      <Text style={footerStyles.userText}>Adheil Gupta</Text>
-    </View>
-  );
-}
-
-const footerStyles = StyleSheet.create({
-  container: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    paddingTop: 12,
-    paddingHorizontal: 12,
-  },
-  avatorContainer: {
-    backgroundColor: "black",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "black",
-    width: 40,
-    height: 40,
-    padding: 4,
-    borderRadius: 20,
-  },
-  userText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "black",
   },
 });
 
