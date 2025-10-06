@@ -3,8 +3,10 @@ import CustomDrawerContent from "@/components/app/sidebar";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useRouter } from "expo-router";
+import { useTheme } from "@react-navigation/native";
 
 export default function DrawerLayout() {
+  const theme = useTheme();
   return (
     <Drawer
       initialRouteName="index"
@@ -14,6 +16,11 @@ export default function DrawerLayout() {
         name="index"
         options={{
           headerTitle: "",
+          headerStyle: {
+            backgroundColor: theme.dark ? "black" : "white",
+            borderBottomColor: theme.dark ? "#282828" : "black",
+            borderBottomWidth: 0.5,
+          },
           headerShown: true,
           headerRight: () => <Settings />,
           headerRightContainerStyle: {
@@ -28,25 +35,33 @@ export default function DrawerLayout() {
 
 function Settings() {
   const router = useRouter();
-
+  const theme = useTheme();
   return (
     <TouchableOpacity
-      style={footerStyles.avatorContainer}
+      style={[
+        footerStyles.avatorContainer,
+        {
+          backgroundColor: theme.dark ? "#282828" : "black",
+          borderColor: theme.dark ? "#282828" : "black",
+        },
+      ]}
       onPress={() => router.push("/modal")}
     >
-      <FontAwesome5 name="user-alt" size={12} color="white" />
+      <FontAwesome5
+        name="user-alt"
+        size={12}
+        color={theme.dark ? "white" : "black"}
+      />
     </TouchableOpacity>
   );
 }
 
 const footerStyles = StyleSheet.create({
   avatorContainer: {
-    backgroundColor: "black",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "black",
     width: 36,
     height: 36,
     padding: 4,

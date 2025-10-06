@@ -1,1 +1,2 @@
 add mic permissions for android
+add new arch to android

@@ -14,16 +14,16 @@ import {
 } from "react-native";
 import useChatId from "@/store/chatId";
 import { useChats } from "@/hooks/useChats";
-import auth from "@react-native-firebase/auth";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Entypo from "@expo/vector-icons/Entypo";
 import { type Chats } from "@/types";
+import { useTheme } from "@react-navigation/native";
 
 function CustomDrawerContent({
   props,
 }: {
   props: DrawerContentComponentProps;
 }) {
+  const theme = useTheme();
   const [fetch, setFetch] = useState<boolean>(false);
   const { chats, loading } = useChats(fetch);
   const drawerStatus = useDrawerStatus();
@@ -51,20 +51,33 @@ function CustomDrawerContent({
       {...props}
       scrollEnabled={false}
       contentContainerStyle={sidebarStyles.scrollView}
+      style={{ backgroundColor: theme.dark ? "#121212" : "white" }}
     >
       <View style={sidebarStyles.container}>
-        {/* <TouchableOpacity onPress={() => auth().signOut()}>
-          <Text>Sign Out</Text>
-        </TouchableOpacity> */}
         <TouchableOpacity
           style={sidebarStyles.newChatContainer}
           onPress={() => handleNewChat()}
         >
-          <Entypo name="new-message" size={22} color="black" />
-          <Text style={sidebarStyles.newChatText}>New Chat</Text>
+          <Entypo
+            name="new-message"
+            size={22}
+            color={theme.dark ? "white" : "black"}
+          />
+          <Text
+            style={[
+              sidebarStyles.newChatText,
+              { color: theme.dark ? "white" : "black" },
+            ]}
+          >
+            New Chat
+          </Text>
         </TouchableOpacity>
-        <Chats chats={chats} loading={loading} closeDrawer={closeDrawer} />
-        {/* <Footer /> */}
+        <Chats
+          theme={theme}
+          chats={chats}
+          loading={loading}
+          closeDrawer={closeDrawer}
+        />
       </View>
     </DrawerContentScrollView>
   );
@@ -97,7 +110,9 @@ function Chats({
   chats,
   loading,
   closeDrawer,
+  theme,
 }: {
+  theme: ReactNavigation.Theme;
   chats: Chats;
   loading: boolean;
   closeDrawer: () => void;
@@ -111,12 +126,15 @@ function Chats({
 
   return (
     <ScrollView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: "transparent" }}
       contentContainerStyle={chatsStyles.container}
     >
       {loading ? (
         <View style={chatsStyles.loaderContainer}>
-          <ActivityIndicator size="small" color="black" />
+          <ActivityIndicator
+            size="small"
+            color={theme.dark ? "white" : "black"}
+          />
         </View>
       ) : (
         chats.map((chat: any) => {
@@ -125,7 +143,13 @@ function Chats({
               key={chat._id}
               onPress={() => handleChatPress(chat._id)}
             >
-              <Text style={chatsStyles.titleText} className="line-clamp-1">
+              <Text
+                style={[
+                  chatsStyles.titleText,
+                  { color: theme.dark ? "white" : "black" },
+                ]}
+                className="line-clamp-1"
+              >
                 {chat.title}
               </Text>
             </TouchableOpacity>

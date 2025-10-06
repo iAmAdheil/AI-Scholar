@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { useTheme } from "@react-navigation/native";
 import Voice from "@react-native-voice/voice";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -42,12 +43,14 @@ const formatChat = (convo: Chat) => {
 };
 
 function Footer({
+  theme,
   prompt,
   setPrompt,
   handleSend,
   loading,
   chatId,
 }: {
+  theme: ReactNavigation.Theme;
   prompt: string;
   setPrompt: (value: string) => void;
   handleSend: () => void;
@@ -120,13 +123,19 @@ function Footer({
         multiline={true}
         maxLength={200}
         numberOfLines={8}
-        style={[styles.input, { paddingRight: isRecording ? 80 : 60 }]}
         placeholderTextColor={"gray"}
+        style={[
+          styles.input,
+          {
+            paddingRight: isRecording ? 80 : 60,
+            color: theme.dark ? "white" : "black",
+          },
+        ]}
       />
       <View style={styles.inputButtonsContainer}>
         {prompt.length === 0 && !isRecording && (
           <TouchableOpacity onPress={startListening}>
-            <Feather name="mic" size={22} color="gray" />
+            <Feather name="mic" size={22} color={"gray"} />
           </TouchableOpacity>
         )}
         {isRecording && (
@@ -135,11 +144,24 @@ function Footer({
           </TouchableOpacity>
         )}
         {!isRecording && (
-          <TouchableOpacity style={styles.sendContainer} onPress={handleSend}>
+          <TouchableOpacity
+            style={[
+              styles.sendContainer,
+              { backgroundColor: theme.dark ? "white" : "black" },
+            ]}
+            onPress={handleSend}
+          >
             {loading ? (
-              <ActivityIndicator size="small" color="white" />
+              <ActivityIndicator
+                size="small"
+                color={theme.dark ? "black" : "white"}
+              />
             ) : (
-              <AntDesign name="arrowup" size={20} color="white" />
+              <AntDesign
+                name="arrowup"
+                size={20}
+                color={theme.dark ? "black" : "white"}
+              />
             )}
           </TouchableOpacity>
         )}
@@ -149,6 +171,7 @@ function Footer({
 }
 
 function Index() {
+  const theme = useTheme();
   const headerHeight = useHeaderHeight();
   const { chatId } = useChatId();
 
@@ -333,6 +356,7 @@ function Index() {
           />
         </View>
         <Footer
+          theme={theme}
           prompt={prompt}
           setPrompt={setPrompt}
           handleSend={handleSend}
@@ -349,7 +373,7 @@ export default Index;
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    borderColor: "lightgray",
+    borderColor: "#282828",
     borderRadius: 20,
     paddingLeft: 18,
     paddingVertical: 12,
@@ -357,7 +381,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     fontSize: 16,
     fontWeight: "400",
-    color: "black",
   },
   inputButtonsContainer: {
     position: "absolute",
@@ -369,10 +392,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sendContainer: {
-    height: 36,
-    width: 36,
+    height: 32,
+    width: 32,
     borderRadius: 18,
-    backgroundColor: "black",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",

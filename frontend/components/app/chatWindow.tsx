@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
+import { useTheme } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -152,7 +153,11 @@ const Message = memo(
     startTts: (msgId: string, text: string) => void;
     stopTts: () => void;
   }) => {
-    const markdownStyles = getStyles(isUser ? "white" : "black", 15.5);
+    const theme = useTheme();
+    const markdownStyles = getStyles(
+      isUser ? "white" : theme.dark ? "white" : "black",
+      15.5,
+    );
 
     if (isUser) {
       return (
@@ -193,7 +198,11 @@ const Message = memo(
         </Markdown>
         <View className="ml-2 flex flex-row items-center gap-3">
           <TouchableOpacity>
-            <Feather name="copy" size={15} color="black" />
+            <Feather
+              name="copy"
+              size={15}
+              color={theme.dark ? "white" : "black"}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
@@ -201,9 +210,17 @@ const Message = memo(
             }}
           >
             {playing ? (
-              <FontAwesome5 name="pause-circle" size={18} color="#3b444b" />
+              <FontAwesome5
+                name="pause-circle"
+                size={18}
+                color={theme.dark ? "white" : "black"}
+              />
             ) : (
-              <Ionicons name="volume-medium-outline" size={20} color="black" />
+              <Ionicons
+                name="volume-medium-outline"
+                size={20}
+                color={theme.dark ? "white" : "#3b444b"}
+              />
             )}
           </TouchableOpacity>
         </View>

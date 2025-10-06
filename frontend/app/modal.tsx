@@ -1,18 +1,10 @@
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Switch } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
-import { useState } from "react";
+import useTheme from "@/store/theme";
 
 export default function Modal() {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
+  const { theme, updateTheme } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -58,7 +50,12 @@ export default function Modal() {
                 <Text style={styles.optionText}>Appearance</Text>
               </View>
               <View className="pr-4">
-                <Switch onValueChange={toggleSwitch} value={isEnabled} />
+                <Switch
+                  onValueChange={() =>
+                    updateTheme(theme === "dark" ? "light" : "dark")
+                  }
+                  value={theme === "dark"}
+                />
               </View>
             </View>
           </View>
