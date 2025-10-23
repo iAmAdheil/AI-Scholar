@@ -4,14 +4,21 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { View } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withRepeat,
+} from "react-native-reanimated";
+import { View, Image } from "react-native";
+import MaskedView from "@react-native-masked-view/masked-view";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ActivityIndicator } from "react-native";
 import useTheme from "@/store/theme";
 
 import "@/global.css";
@@ -56,7 +63,7 @@ export default function RootLayout() {
         style={{ backgroundColor: theme === "dark" ? "black" : "white" }}
       >
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={`purple`} />
+          <LoadingLogo theme={(theme as "dark" | "light") || "light"} />
         </View>
       </SafeAreaView>
     );
@@ -75,5 +82,77 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+function LoadingLogo({ theme }: { theme: "dark" | "light" }) {
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    // Define the animation: move to y: 500 and back to y: 0
+    translateY.value = withRepeat(
+      withSequence(
+        withTiming(500, { duration: 2500 }), // Move down 500px
+        withTiming(0, { duration: 2500 }), // Move back to 0
+      ),
+      -1, // Infinite loop
+      false, // Do not reverse
+    );
+  }, []);
+
+  // Animated style for the white bar
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <MaskedView
+      androidRenderingMode="software"
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        height: "100%",
+      }}
+      maskElement={
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "transparent",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image
+            source={require("@/assets/new-images/logo.png")}
+            className="w-52 h-52"
+          />
+        </View>
+      }
+    >
+      <View
+        style={{
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          height: "100%",
+          width: "100%",
+          backgroundColor: theme === "dark" ? "#1c1c1c" : "#dbdbdb",
+        }}
+      >
+        <Animated.View
+          style={[
+            {
+              position: "absolute", // Ensure the bar is positioned over the image
+              width: "100%",
+              height: 30,
+              borderRadius: 2,
+              backgroundColor: "#999999",
+              zIndex: 10, // Place above the image
+            },
+            animatedStyle, // Apply the animated style
+          ]}
+        />
+      </View>
+    </MaskedView>
   );
 }
