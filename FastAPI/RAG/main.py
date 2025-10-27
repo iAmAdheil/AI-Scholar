@@ -1,9 +1,10 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage, SystemMessage
 from . import tools
 
 model = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",  # or "gemini-1.5-flash" for faster responses
+    model="gemini-2.5-flash",  # or "gemini-1.5-flash" for faster responses
     google_api_key="AIzaSyC-rE0Ggpz0AlNeYVC3aoJXBmz2j2YS9eI",
     temperature=0.1,  # Lower for more factual responses
 )
@@ -45,43 +46,63 @@ def rag(user_query: str) -> str:
 
     elif query_type.lower() == "generic-research":
         prompt = """
-		You are a **Context Extractor Agent**. Your sole purpose is to gather and return **only the relevant context** needed to answer the user's query — not the final answer itself.
+        You are a **Context Extractor Agent**. Your sole purpose is to gather and return **only the relevant context** needed to answer the user's query — not the final answer itself.
 
-		You have access to two tools: `kb_retrieval` (internal knowledge base) and `web_search` (public search engine).
+        You have access to two tools: `kb_retrieval` (internal knowledge base) and `web_search` (public search engine).
 
-		**PROCEDURE:**
+        **PROCEDURE:**
 
-		1. **PRIMARY SOURCE:** First, attempt to retrieve information using the `kb_retrieval` tool.  
-		- **Action:** Call `kb_retrieval` with the user's exact query.  
-		- **Observation Analysis:** Evaluate the content returned by `kb_retrieval`.  
-		- **IF** the content is sufficient or partially relevant → **return only the relevant context** (verbatim; no rewriting or summarizing).  
-		- **IF** the content is empty or clearly irrelevant → proceed to Step 2.
+        1. **PRIMARY SOURCE:** First, attempt to retrieve information using the `kb_retrieval` tool.
+        - **Action:** Call `kb_retrieval` with the user's exact query.
+        - **Observation Analysis:** Evaluate the content returned by `kb_retrieval`.
+        - **IF** the content is sufficient or partially relevant(you feel the content is enough to answer the user's query) → **return only the relevant context** (verbatim; no rewriting or summarizing).
+        - **IF** the content is empty or clearly irrelevant(you feel the content is not enough to answer the user's query) → proceed to Step 2.
 
-		2. **SECONDARY SOURCE (Fallback):** If `kb_retrieval` fails, call the `web_search` tool.  
-		- **Action:** Call `web_search` with the user's original query.  
-		- **Observation Analysis:** Evaluate the search results.  
-		- **IF** relevant → **return only the relevant parts** (original wording).  
-		- **IF** still unhelpful → return exactly:  
-			```
-			No relevant context could be retrieved.
-			```
+        2. **SECONDARY SOURCE (Fallback):** If content returned by `kb_retrieval` is empty or clearly irrelevant, call the `web_search` tool.
+        - **Action:** Call `web_search`, following instructions mentioned in tool definition.
+        - **Observation Analysis:** Evaluate the search results.
+        - **IF** relevant → **return only the relevant parts** (original wording).
+        - **IF** still unhelpful → return:
+        	```
+        	No relevant context could be retrieved.
+        	```
+            and add reason as to why you felt the content is not enough to answer the user's query.
 
-		**RULES:**
-		- Do **not** generate or formulate an answer to the query.
-		- Do **not** add explanations, reasoning, or commentary.
-		- Return **only the extracted text** or the “no relevant context” message.
-		"""
+        **RULES:**
+        - Do **not** generate or formulate an answer to the query.
+        - Do **not** add explanations, reasoning, or commentary.
+        - Return **only the extracted text** or the “no relevant context” message.
+        """
 
-        agent = create_agent(model, tools=[tools.web_search, tools.kb_retrieval])
+        agent = create_agent(model, tools=[tools.kb_retrieval, tools.web_search])
 
         conversation = agent.invoke(
-            {"messages": [{"role": "user", "content": f"{user_query}"}]}
+            {
+                "messages": [
+                    SystemMessage(content=prompt),
+                    HumanMessage(content=f"User's Question: {user_query}"),
+                ]
+            }
         )
 
-        # extract the final context from the conversation and return it
-        final_ai_message = conversation["messages"][-1].content
+        messages = conversation["messages"]
 
-        return final_ai_message
+        # 1️⃣ Look for the last *non-empty* tool or AI message with actual content
+        final_message = next(
+            (
+                m for m in reversed(messages)
+                if getattr(m, "content", None)
+                and str(m.content).strip() not in ["", None]
+                and not isinstance(m, SystemMessage)
+            ), 
+            None
+        )
+
+        # 2️⃣ Handle fallback
+        if final_message:
+            return final_message.content
+        else:
+            return "No relevant context could be retrieved."
 
     elif query_type.lower() == "specific-to-paper":
         prompt = """
@@ -115,7 +136,18 @@ def rag(user_query: str) -> str:
         agent = create_agent(model, tools=[tools.web_search, tools.kb_retrieval])
 
         conversation = agent.invoke(
-            {"messages": [{"role": "user", "content": f"{user_query}"}]}
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"""
+            {prompt}
+            
+            User's Question: {user_query}
+            """,
+                    }
+                ]
+            }
         )
 
         # extract the final context from the conversation and return it

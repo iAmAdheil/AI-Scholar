@@ -9,8 +9,9 @@ from google.genai import types
 
 from RAG.main import rag
 
+
 class Prompt(BaseModel):
-    text: str
+    user_query: str
 
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -18,34 +19,58 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 client = genai.Client(api_key="AIzaSyC-rE0Ggpz0AlNeYVC3aoJXBmz2j2YS9eI")
 
 
-async def generate(prompt: str):
-	rag_context = rag(prompt)
-	for chunk in client.models.generate_content_stream(
-		model="gemini-2.0-flash",
-		contents=f"""
-		Context: {rag_context}\n\n
-		Question: {prompt}\n\n
-		
-		Rules:
-		- You are a helpful assistant that can answer questions.
-		- If you feel that provided context is not enough, you are free to answer that u don't know the answer.
-		- Do **not** generate or formulate an answer to the query. Use context as your only source of truth to answer each question.
-		- Please use markdown(bold, italics, tables, equations, etc.) wherever required to better format your answer.
-		""",
-		config=types.GenerateContentConfig(
-			thinking_config=types.ThinkingConfig(thinking_budget=0)
-		),
-	):
-		yield f"data: {json.dumps({'chunk': chunk.text, 'done': False})}\n\n"
-		await sleep(0)
+async def generate(user_query: str):
+    try:
+        rag_context = rag(user_query)
+        for chunk in client.models.generate_content_stream(
+            model="gemini-2.0-flash",
+            contents=f"""
+            Context: {rag_context}\n\n
+            Question: {user_query}\n\n
+            
+            ---
 
-	yield f"data: {json.dumps({'chunk': '', 'done': True})}\n\n"
+            **Strict Rules (MUST follow exactly):**
+
+            1. **Source-of-Truth Rule**:  
+            - **ONLY** use information explicitly present in the **Provided Context** above.  
+            - **DO NOT** invent, infer, recall from training data, or hallucinate any facts, numbers, names, or details not directly stated in the context.
+
+            2. **Insufficient Context Rule**:  
+            - If the context does **not** contain enough information to answer the question **accurately and completely**, respond **only** with:  
+                > **"Sorry but cannot answer your question at the moment"**
+                and add a reason as to why you felt the context is insufficient to answer the user's query.
+            - Do **not** guess, partially answer, or suggest external sources.
+
+            3. **Answer Formatting Rules**:
+            - Use **clear, concise, and structured** Markdown formatting:
+                - **Bold** for key terms or emphasis
+                - *Italics* for definitions or subtle points
+                - `Code blocks` for technical terms, file paths, or snippets
+                - Bullet points or numbered lists for multiple items
+                - Tables when comparing data
+                - LaTeX equations via `$$...$$` if needed (e.g., $$  E = mc^2  $$)
+            - Quote direct excerpts from context using `> blockquotes` when referencing evidence.
+            - Keep answers **under 300 words** unless the question demands detail.
+
+            **Now, answer the question using only the context and rules above.**
+            """,
+            config=types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(thinking_budget=0)
+            ),
+        ):
+            yield f"data: {json.dumps({'chunk': chunk.text, 'done': False})}\n\n"
+            await sleep(0)
+
+        yield f"data: {json.dumps({'chunk': '', 'done': True})}\n\n"
+    except Exception as e:
+        yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
 
 
 @router.post("/response", status_code=200)
 async def generate_response(prompt: Prompt):
     return StreamingResponse(
-        generate(prompt.text),
+        generate(prompt.user_query),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

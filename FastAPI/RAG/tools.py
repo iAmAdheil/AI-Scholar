@@ -26,21 +26,33 @@ model = ChatGoogleGenerativeAI(
 
 @tool
 def kb_retrieval(query: str) -> str:
-    """Retrieve documents from the primary knowledge base."""
-    # embed query and get k nearest neighbours -> use retrieval techniques to improve context retrieval
-    collection = chroma_client.get_or_create_collection(
-        name="research_papers", embedding_function=google_ef
-    )
-    result = collection.query(query_texts=[query], n_results=5, include=["documents"])
+    """**PRIMARY SOURCE**: Retrieve stored full-text, abstract, or summary of research papers from the internal knowledge base.
 
-    retrieved_documents = result["documents"][0]
+    **Use this FIRST** for any question related to research.
+    - Returns exact stored document chunks (up to 5 most relevant).
+    - Each chunk is separated by "---".
+    - If no match: returns empty or error.
+    - **Never skip this step** when answering research related questions.
+    """
+    try:
+        # embed query and get k nearest neighbours -> use retrieval techniques to improve context retrieval
+        collection = chroma_client.get_or_create_collection(
+            name="research_papers", embedding_function=google_ef
+        )
+        result = collection.query(
+            query_texts=[query], n_results=5, include=["documents"]
+        )
 
-    # Merge the list of documents into a single string, typically separated by newlines or a delimiter.
-    # The delimiter "---" helps the subsequent LLM distinguish between individual documents.
-    merged_docs_string = "\n---\n".join(retrieved_documents)
+        retrieved_documents = result["documents"][0]
 
-    # 5. Return the Merged String
-    return merged_docs_string
+        # Merge the list of documents into a single string, typically separated by newlines or a delimiter.
+        # The delimiter "---" helps the subsequent LLM distinguish between individual documents.
+        merged_docs_string = "\n---\n".join(retrieved_documents)
+
+        # 5. Return the Merged String
+        return merged_docs_string
+    except Exception as e:
+        return f"Error retrieving documents from the knowledge base: {str(e)}"
 
 
 class SearchInput(BaseModel):
@@ -54,11 +66,15 @@ class SearchInput(BaseModel):
 @tool("web_search", args_schema=SearchInput, return_direct=False)
 def web_search(query: str) -> str:
     """
-    Search academic papers on Semantic Scholar for research questions.
-    Returns paper titles, abstracts, and summaries.
+    **FALLBACK SEARCH**: Search Semantic Scholar for academic papers.
+
+    **ONLY CALL THIS** if:
+    - `kb_retrieval` did not return enough context to answer the user's query.
+
+    **NEVER call this first** — always try `kb_retrieval` before using this.
 
     Args:
-        query: Research topic to search for
+        query: Central topic behind the user's query(for eg. if question is 'What is attention in NLP?', the query should be 'attention in NLP')
 
     Returns:
         Formatted context with paper information
@@ -126,12 +142,16 @@ class SpecificSearchInput(BaseModel):
 @tool("specific_web_search", args_schema=SpecificSearchInput, return_direct=False)
 def specific_web_search(query: str, user_query: str) -> str:
     """
-    Search for a paper using Semantic Scholar.
-    - If openAccessPdf available → embed & retrieve relevant chunks using user_query
-    - Else → return abstract + TL;DR
+    **FALLBACK SEARCH**: Search Semantic Scholar for a specific paper.
+
+    **ONLY CALL THIS** if:
+    - `kb_retrieval` did not return enough context to answer the user's query.
+
+    **NEVER call this first** — always try `kb_retrieval` before using this.
 
     Args:
-        query: Research topic to search for
+        query: complete or incomplete name of the paper or the central topic the user is referring to in their question. Higher priority to the paper's name(incomplete names are acceptable as well)
+        user_query: The user's original query
 
     Returns:
         Formatted context with paper information
