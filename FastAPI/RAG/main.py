@@ -86,19 +86,17 @@ def rag(user_query: str) -> str:
         )
 
         messages = conversation["messages"]
-
-        # 1️⃣ Look for the last *non-empty* tool or AI message with actual content
         final_message = next(
             (
-                m for m in reversed(messages)
+                m
+                for m in reversed(messages)
                 if getattr(m, "content", None)
                 and str(m.content).strip() not in ["", None]
                 and not isinstance(m, SystemMessage)
-            ), 
-            None
+            ),
+            None,
         )
 
-        # 2️⃣ Handle fallback
         if final_message:
             return final_message.content
         else:
@@ -108,18 +106,18 @@ def rag(user_query: str) -> str:
         prompt = """
 		You are a **Context Extractor Agent**. Your sole purpose is to gather and return **only the relevant context** needed to answer the user's query — not the final answer itself.
 
-		You have access to two tools: `kb_retrieval` (internal knowledge base) and `web_search` (public search engine).
+		You have access to two tools: `kb_retrieval` and `specific_web_search`.
 
 		**PROCEDURE:**
 
 		1. **PRIMARY SOURCE:** First, attempt to retrieve information using the `kb_retrieval` tool.  
 		- **Action:** Call `kb_retrieval` with the user's exact query.  
-		- **Observation Analysis:** Evaluate the content returned by `kb_retrieval`.  
+		- **Observation Analysis:** Evaluate the content returned by `kb_retrieval`.
 		- **IF** the content is sufficient or partially relevant → **return only the relevant context** (verbatim; no rewriting or summarizing).  
 		- **IF** the content is empty or clearly irrelevant → proceed to Step 2.
 
-		2. **SECONDARY SOURCE (Fallback):** If `kb_retrieval` fails, call the `specific_web_search` tool.  
-		* **Action:** Call `specific_web_search`, following instructions mentioned in tool definition.
+		2. **SECONDARY SOURCE (Fallback):** If content returned by `kb_retrieval` is empty or clearly irrelevant, call the `specific_web_search` tool.  
+		- **Action:** Call `specific_web_search`, following instructions mentioned in tool definition.
 		- **Observation Analysis:** Evaluate the search results.  
 		- **IF** relevant → **return only the relevant parts** (original wording).  
 		- **IF** still unhelpful → return exactly:  
@@ -133,24 +131,32 @@ def rag(user_query: str) -> str:
 		- Return **only the extracted text** or the “no relevant context” message.
 		"""
 
-        agent = create_agent(model, tools=[tools.web_search, tools.kb_retrieval])
+        agent = create_agent(
+            model, tools=[tools.kb_retrieval, tools.specific_web_search]
+        )
 
         conversation = agent.invoke(
             {
                 "messages": [
-                    {
-                        "role": "user",
-                        "content": f"""
-            {prompt}
-            
-            User's Question: {user_query}
-            """,
-                    }
+                    SystemMessage(content=prompt),
+                    HumanMessage(content=f"User's Question: {user_query}"),
                 ]
             }
         )
 
-        # extract the final context from the conversation and return it
-        final_ai_message = conversation["messages"][-1].content
+        messages = conversation["messages"]
+        final_message = next(
+            (
+                m
+                for m in reversed(messages)
+                if getattr(m, "content", None)
+                and str(m.content).strip() not in ["", None]
+                and not isinstance(m, SystemMessage)
+            ),
+            None,
+        )
 
-        return final_ai_message
+        if final_message:
+            return final_message.content
+        else:
+            return "No relevant context could be retrieved."
