@@ -219,6 +219,11 @@ function Index() {
     }
 
     return () => {
+      // Clean up EventSource connection
+      if (es.current) {
+        es.current.close();
+        es.current = null;
+      }
       msgId.current = null;
       chatIdRef.current = null;
       setMessages([]);
@@ -282,7 +287,16 @@ function Index() {
   };
 
   const handleSend = async () => {
+    // Prevent multiple simultaneous requests
+    if (loading) {
+      return;
+    }
     setLoading(true);
+    // Close any existing EventSource connection
+    if (es.current) {
+      es.current.close();
+      es.current = null;
+    }
 
     const payload = {
       message: prompt,
@@ -300,7 +314,8 @@ function Index() {
     msgId.current = newMsgId;
 
     const newES = new EventSource(
-      `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatIdRef.current}`,
+      // `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatIdRef.current}`,
+      `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/generate`,
       {
         method: "POST",
         headers: {

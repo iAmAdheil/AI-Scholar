@@ -59,12 +59,12 @@ async def generate(user_query: str):
                 thinking_config=types.ThinkingConfig(thinking_budget=0)
             ),
         ):
-            yield f"data: {json.dumps({'chunk': chunk.text, 'done': False})}\n\n"
+            yield f"data: {json.dumps({'chunk': chunk.text, 'finished': False})}\n\n"
             await sleep(0)
 
-        yield f"data: {json.dumps({'chunk': '', 'done': True})}\n\n"
+        yield f"data: {json.dumps({'chunk': '', 'finished': True})}\n\n"
     except Exception as e:
-        yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
+        yield f"data: {json.dumps({'error': str(e), 'finished': True})}\n\n"
 
 
 @router.post("/response", status_code=200)

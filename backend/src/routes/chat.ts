@@ -22,11 +22,11 @@ router.post('/generate', async (req, res, next) => {
 
 		let generated = ''
 
-		const fastApiUrl = 'http://localhost:8000/generate-response'; // Adjust URL as needed
+		const fastApiUrl = 'http://localhost:5432/chat/response'; // Adjust URL as needed
 		const response = await fetch(fastApiUrl, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ text }),
+			body: JSON.stringify({ user_query: text }),
 		});
 
 		if (!response.ok) {
@@ -67,7 +67,7 @@ router.post('/generate', async (req, res, next) => {
 			}
 		}
 	} catch (e: any) {
-		console.log(e)
+		console.log('Error in /generate endpoint:', e)
 		res.write(
 			`data: ${JSON.stringify({
 				error: e.message || 'An unexpected error occurred',

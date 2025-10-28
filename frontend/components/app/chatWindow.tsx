@@ -50,7 +50,7 @@ function ChatWindow({
       //   index: i,
       //   viewPosition: 0.1,
       // });
-      flashListRef.current?.scrollToEnd({ animated: true });
+      // flashListRef.current?.scrollToEnd({ animated: true });
     };
 
     const index = messages.findIndex((msg) => msg.id === msgIdRef.current);
