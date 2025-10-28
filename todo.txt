@@ -1,2 +1,6 @@
 add mic permissions for android
 add new arch to android
+
+create new chat and save messages for rag route
+pass prev messages for chat context
+scrolling does not work
