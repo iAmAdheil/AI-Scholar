@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   SafeAreaView,
@@ -28,6 +28,7 @@ function Input({
   return (
     <View className="w-full flex flex-row justify-between items-center gap-2">
       <OtpInput
+        autoFocus={false}
         numberOfDigits={6}
         focusColor="#1DA1F2"
         onTextChange={(otp) => setDigits(otp)}
@@ -60,6 +61,12 @@ function Otp() {
 
   const disabled = useMemo(() => {
     return digits.length !== 6;
+  }, [digits]);
+
+  useEffect(() => {
+    if (digits.length === 6) {
+      Keyboard.dismiss();
+    }
   }, [digits]);
 
   useFocusEffect(

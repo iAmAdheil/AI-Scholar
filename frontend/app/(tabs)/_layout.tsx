@@ -22,6 +22,12 @@ export default function TabLayout() {
           title: "otp",
         }}
       />
+      <Stack.Screen
+        name="test"
+        options={{
+          title: "test",
+        }}
+      />
     </Stack>
   );
 }

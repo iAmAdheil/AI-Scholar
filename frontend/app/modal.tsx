@@ -10,11 +10,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import useTheme from "@/store/theme";
 import { signOut } from "@/utils/signin";
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 
 export default function Modal() {
   const { theme, updateTheme } = useTheme();
-  const navigation = useNavigation();
 
   const handleSignOut = async () => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
@@ -22,8 +21,8 @@ export default function Modal() {
       {
         text: "Logout",
         onPress: async () => {
+          router.dismiss();
           await signOut();
-          navigation.goBack();
         },
       },
     ]);

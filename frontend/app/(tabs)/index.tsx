@@ -12,7 +12,7 @@ import {
   Keyboard,
   Platform,
 } from "react-native";
-import { useRouter, usePathname, useFocusEffect } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { phoneSignIn, googleSignIn } from "@/utils/signin";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -45,6 +45,8 @@ function Signin() {
 
   const handlePhoneSignIn = async () => {
     try {
+      Keyboard.dismiss();
+      setLoading(true);
       if (mobile.length !== 10) {
         return;
       }
@@ -55,7 +57,13 @@ function Signin() {
       }
     } catch (e: any) {
       alert("Something went wrong");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleTest = () => {
+    router.push("/(tabs)/test");
   };
 
   return (
@@ -131,7 +139,8 @@ function Signin() {
 
             <View className="w-full" style={styles.bottomContainer}>
               <TouchableOpacity
-                onPress={googleSignIn}
+                // onPress={googleSignIn}
+                onPress={handleTest}
                 style={[
                   styles.button,
                   {
