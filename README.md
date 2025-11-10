@@ -1,6 +1,5 @@
-### SES Monorepo
+### A RAG Framework for Research Paper Question Answering
 
-Full-stack AI chat application with:
 
 ## Overview
 
