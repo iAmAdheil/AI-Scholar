@@ -1,4 +1,4 @@
-### A RAG Framework for Research Paper Question Answering
+# A RAG Framework for Research Paper Question Answering
 
 
 ## Overview
