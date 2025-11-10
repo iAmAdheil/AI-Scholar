@@ -1,6 +1,10 @@
+bugs:
+scrolling methods don't work -> most probably due to old - new arch
+
+android setup:
 add mic permissions for android
 add new arch to android
 
-create new chat and save messages for rag route
+features:
 pass prev messages for chat context
-scrolling does not work
+track token usage for each user
