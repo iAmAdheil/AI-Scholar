@@ -1,98 +1,213 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState, useEffect, useMemo } from "react";
+import {
+  View,
+  SafeAreaView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  Image,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from "react-native";
+import { useRouter, usePathname } from "expo-router";
+import { phoneSignIn, googleSignIn } from "@/utils/signin";
+import Feather from "@expo/vector-icons/Feather";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import useConfirm from "@/store/confirm";
+import useTheme from "@/store/theme";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+function Signin() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { updateConfirm } = useConfirm();
+  const { theme } = useTheme();
 
-export default function HomeScreen() {
+  const [loading, setLoading] = useState(false);
+  const [activeInput, setActiveInput] = useState<string>("");
+
+  const [mobile, setMobile] = useState<string>("");
+
+  const disabled = useMemo(() => {
+    return mobile.length !== 10;
+  }, [mobile]);
+
+  useEffect(() => {
+    setLoading(false);
+    setMobile("");
+  }, []);
+
+  useEffect(() => {
+    console.log(pathname);
+  }, [pathname]);
+
+  const handlePhoneSignIn = async () => {
+    try {
+      Keyboard.dismiss();
+      setLoading(true);
+      if (mobile.length !== 10) {
+        return;
+      }
+      const confirmation = await phoneSignIn(mobile);
+      if (confirmation) {
+        updateConfirm(confirmation);
+        router.push("/(tabs)/otp");
+      }
+    } catch (e: any) {
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTest = () => {
+    router.push("/(tabs)/test");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+    <SafeAreaView style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View
+          className={`flex-1 w-[90%] flex flex-col relative justify-center ${Platform.OS === "ios" ? "pt-10" : "pt-20"}`}
+        >
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("@/assets/new-images/logo.png")}
+              className="w-52 h-52"
             />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
+          </View>
+          <View
+            className={`flex-1 flex flex-col gap-10 ${Platform.OS === "ios" ? "pb-10" : "pb-20"}`}
+          >
+            <View style={styles.inputContainer}>
+              <Feather
+                name="phone"
+                size={18}
+                color={activeInput === "phone" ? "#1DA1F2" : "gray"}
+                className="absolute z-10 left-5 top-2.5"
               />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+              <Text
+                style={[
+                  styles.phoneCountryCode,
+                  { color: theme === "dark" ? "white" : "black" },
+                ]}
+              >
+                +91
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                maxLength={10}
+                value={mobile}
+                onChangeText={setMobile}
+                style={[
+                  styles.phoneInput,
+                  {
+                    borderColor: activeInput === "phone" ? "#1DA1F2" : "gray",
+                    color: theme === "dark" ? "white" : "black",
+                  },
+                ]}
+                placeholder="Enter your phone number"
+                placeholderTextColor={"gray"}
+                onFocus={() => {
+                  setActiveInput("phone");
+                }}
+                onBlur={() => {
+                  setActiveInput("");
+                }}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={async () => {
+                await handlePhoneSignIn();
+              }}
+              style={[
+                styles.button,
+                {
+                  backgroundColor: loading || disabled ? "gray" : "#1DA1F2",
+                },
+              ]}
+              disabled={loading || disabled}
+            >
+              {!loading ? (
+                <Text style={[styles.buttonText]}>Generate OTP</Text>
+              ) : (
+                <ActivityIndicator size="small" color="#fff" />
+              )}
+            </TouchableOpacity>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+            <View className="w-full" style={styles.bottomContainer}>
+              <TouchableOpacity
+                // onPress={googleSignIn}
+                onPress={handleTest}
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: !loading ? "#1DA1F2" : "gray",
+                  },
+                ]}
+                className="flex flex-row items-center justify-center gap-6"
+                disabled={loading}
+              >
+                <AntDesign name="google" size={22} color="white" />
+                <Text style={[styles.buttonText]}>Login with Google</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
+export default Signin;
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logoContainer: {
+    marginHorizontal: "auto",
+    marginBottom: 40,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  inputContainer: {
+    position: "relative",
+    width: "100%",
+    alignItems: "center",
+  },
+  phoneCountryCode: {
+    position: "absolute",
+    left: 50,
+    top: 8,
+    fontSize: 16,
+    color: "black",
+  },
+  phoneInput: {
+    width: "100%",
+    borderRadius: 5,
+    paddingLeft: 85,
+    paddingRight: 40,
+    paddingVertical: 8,
+    color: "black",
+    borderBottomWidth: 1,
+    fontSize: 16,
+  },
+  button: {
+    width: "100%",
+    backgroundColor: "#1DA1F2",
+    paddingVertical: 14,
+    borderRadius: 6,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "400",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  bottomContainer: {
+    marginTop: "auto",
   },
 });

@@ -50,11 +50,11 @@ export default function RootLayout() {
     }
   }, [route, loading]);
 
-    useEffect(() => {
-      setTimeout(() => {
-        setSplashLoader(false);
-      }, 5000);
-    }, []);
+  useEffect(() => {
+    setTimeout(() => {
+      setSplashLoader(false);
+    }, 5000);
+  }, []);
 
   if (!loaded || loading || splashLoader) {
     return (
