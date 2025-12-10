@@ -233,6 +233,7 @@ function Index() {
   useEffect(() => {
     const handleToken = async () => {
       const userToken = await getToken();
+      console.log(userToken);
       token.current = userToken;
     };
     handleToken();
@@ -287,6 +288,7 @@ function Index() {
   };
 
   const handleSend = async () => {
+    console.log(token.current);
     // Prevent multiple simultaneous requests
     if (loading) {
       return;
