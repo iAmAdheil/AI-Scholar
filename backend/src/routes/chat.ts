@@ -3,11 +3,6 @@ import { GoogleGenAI } from '@google/genai';
 import saveMsg from '../utils/save';
 import Chat from '../models/chat';
 
-// delete in the future
-const GEMINI_API_KEY = 'AIzaSyB5G6wq4A-DVnpVCl-2KGsfldDctC0mvRI';
-
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
 const router = Router();
 
 router.post('/generate', async (req, res, next) => {
@@ -93,6 +88,7 @@ router.post('/:id', async (req, res, next) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await ai.models.generateContentStream({
       model: 'gemini-2.5-flash',
       contents: `${message}`,

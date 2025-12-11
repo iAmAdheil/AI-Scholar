@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableOpacity,
   ActivityIndicator,
+  PermissionsAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@react-navigation/native";
@@ -69,6 +70,20 @@ function Footer({
       console.log("error while listening:", error);
       setIsRecording(false);
     };
+
+    const androidCheckPermissions = async () => {
+      const hasPermission = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+      );
+      console.log("permission status to record audio (android):", hasPermission);
+      if (!hasPermission) {
+        setIsRecording(false);
+      }
+      const getService = Voice.getSpeechRecognitionServices();
+      console.log("speech recognition services (android):", getService);
+    };
+
+    androidCheckPermissions();
 
     // Clean up
     return () => {

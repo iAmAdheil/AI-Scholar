@@ -1,6 +1,6 @@
 import { Drawer } from "expo-router/drawer";
 import CustomDrawerContent from "@/components/app/sidebar";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity } from "react-native";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useRouter } from "expo-router";
 import { useTheme } from "@react-navigation/native";
@@ -16,6 +16,7 @@ export default function DrawerLayout() {
         name="index"
         options={{
           headerTitle: "",
+          headerShadowVisible: Platform.OS === "android" ? false : true,
           headerStyle: {
             backgroundColor: theme.dark ? "black" : "transparent",
             borderBottomColor: theme.dark ? "#282828" : "lightgray",
