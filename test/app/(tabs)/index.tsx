@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   View,
-  SafeAreaView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -13,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useRouter, usePathname } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { phoneSignIn, googleSignIn } from "@/utils/signin";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -67,7 +67,7 @@ function Signin() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View
           className={`flex-1 w-[90%] flex flex-col relative justify-center ${Platform.OS === "ios" ? "pt-10" : "pt-20"}`}

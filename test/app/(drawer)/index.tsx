@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  SafeAreaView,
   View,
   TextInput,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@react-navigation/native";
 import Voice from "@react-native-voice/voice";
 import Feather from "@expo/vector-icons/Feather";
@@ -243,9 +243,24 @@ function Index() {
 
   useEffect(() => {
     const handleToken = async () => {
-      const userToken = await getToken();
-      console.log(userToken);
-      token.current = userToken;
+      try {
+        let userToken: string | null = null;
+        let counter = 10;
+        while (!userToken || userToken.length === 0) {
+          if (counter === 0) {
+            throw new Error("Failed to get token");
+          }
+          userToken = await getToken();
+          if (!userToken || userToken.length === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+          counter--;
+        }
+        console.log("userToken:", userToken);
+        token.current = userToken;
+      } catch (e: any) {
+        console.log(e.message);
+      }
     };
     handleToken();
   }, []);
@@ -374,7 +389,7 @@ function Index() {
       className="flex-1"
       keyboardVerticalOffset={headerHeight}
     >
-      <SafeAreaView className="flex-1" >
+      <SafeAreaView edges={["bottom"]} className="flex-1" >
         <View className="flex-1" >
           <ChatWindow
             messages={messages}

@@ -15,7 +15,6 @@ export const storeToken = async (firebaseId: string) => {
       },
     );
     if (response.status === 200 && response.data.token) {
-      console.log(response.data.token);
       await AsyncStorage.setItem("token", response.data.token);
       return 1;
     }

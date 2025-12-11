@@ -1,5 +1,4 @@
 bugs:
-scrolling methods don't work -> most probably due to old - new arch
 
 android setup:
 add mic permissions for android
