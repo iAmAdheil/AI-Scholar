@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
-  SafeAreaView,
   StyleSheet,
   Image,
   TouchableWithoutFeedback,
@@ -11,6 +10,7 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { OtpInput } from "react-native-otp-entry";
 import { useFocusEffect, useRouter } from "expo-router";
 import useConfirm from "@/store/confirm";
@@ -100,7 +100,7 @@ function Otp() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View
           className={`flex-1 w-[90%] flex flex-col relative ${Platform.OS === "ios" ? "pt-10 pb-20" : "pt-20 pb-40"}`}

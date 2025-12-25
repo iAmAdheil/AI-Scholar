@@ -50,7 +50,7 @@ export default function Test() {
           ref={flatListRef}
           data={data}
           renderItem={({ item }) => (
-            <View style={{ width: 100, height: 100, backgroundColor: "green" }}>
+            <View className="bg-green-700" style={{ width: 100, height: 100 }}>
               <Text>{item}</Text>
             </View>
           )}

@@ -1,3 +1,4 @@
+import "@/global.css";
 import { useEffect, useState } from "react";
 import {
   DarkTheme,
@@ -20,8 +21,6 @@ import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "@/store/theme";
-
-import "@/global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -46,6 +45,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!loading && route) {
       console.log("Navigating to route:", route);
+      //@ts-ignore
       router.navigate(`${route}`);
     }
   }, [route, loading]);

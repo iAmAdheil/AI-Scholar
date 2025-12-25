@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   FlatList,
 } from "react-native";
-import { FlashList, FlashListRef } from "@shopify/flash-list";
 import { useTheme } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -36,7 +35,6 @@ function ChatWindow({
   startTts: (msgId: string, text: string) => void;
   stopTts: () => void;
 }) {
-  const flashListRef = useRef<FlashListRef<MessageInterface>>(null);
   const flatListRef = useRef<FlatList>(null);
   const msgIdRef = useRef<string | null>(null);
 
@@ -84,53 +82,6 @@ function ChatWindow({
           className="w-52 h-52 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 opacity-30"
         />
       )}
-      {/* <FlashList
-        ref={flashListRef}
-        data={messages}
-        keyExtractor={(item: any) => item.id.toString()}
-        onScrollBeginDrag={() => {
-          msgIdRef.current = null;
-        }}
-        style={{
-          paddingHorizontal: 10,
-          flex: 1,
-        }}
-        contentContainerStyle={{
-          paddingVertical: 20,
-        }}
-        showsVerticalScrollIndicator={true}
-        renderItem={({ item }) => (
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              marginVertical: 12,
-            }}
-          >
-            <Message
-              id={item.id}
-              message={item.prompt}
-              isUser={true}
-              isStreaming={item.isStreaming}
-              isLoading={false}
-              playing={playingId === item.id}
-              startTts={startTts}
-              stopTts={stopTts}
-            />
-            <Message
-              id={item.id}
-              message={item.response}
-              isUser={false}
-              isStreaming={item.isStreaming}
-              isLoading={item.isLoading}
-              playing={playingId === item.id}
-              startTts={startTts}
-              stopTts={stopTts}
-            />
-          </View>
-        )}
-      /> */}
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -138,8 +89,14 @@ function ChatWindow({
         onScrollBeginDrag={() => {
           msgIdRef.current = null;
         }}
-        getItemLayout={(data, index) => {
-          return { length: 500, index, offset: 500 * index };
+        onScrollToIndexFailed={(info) => {
+          const wait = new Promise((resolve) => setTimeout(resolve, 500));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+            });
+          });
         }}
         style={{
           paddingHorizontal: 10,
@@ -271,6 +228,7 @@ const Message = memo(
           ) : (
             <>
               <Markdown
+                //@ts-ignore
                 style={{
                   ...markdownStyles,
                 }}

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  SafeAreaView,
   View,
   TextInput,
   StyleSheet,
@@ -8,7 +7,9 @@ import {
   Platform,
   TouchableOpacity,
   ActivityIndicator,
+  PermissionsAndroid,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@react-navigation/native";
 import Voice from "@react-native-voice/voice";
 import Feather from "@expo/vector-icons/Feather";
@@ -70,6 +71,20 @@ function Footer({
       setIsRecording(false);
     };
 
+    const androidCheckPermissions = async () => {
+      const hasPermission = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+      );
+      console.log("permission status to record audio (android):", hasPermission);
+      if (!hasPermission) {
+        setIsRecording(false);
+      }
+      const getService = Voice.getSpeechRecognitionServices();
+      console.log("speech recognition services (android):", getService);
+    };
+
+    androidCheckPermissions();
+
     // Clean up
     return () => {
       stopListening();
@@ -116,57 +131,68 @@ function Footer({
   };
 
   return (
-    <View className="py-2 relative">
+    <View className="py-2 relative" >
       <TextInput
         placeholder="Ask anything"
         value={prompt}
-        onChangeText={(value) => setPrompt(value)}
+        onChangeText={(value) => setPrompt(value)
+        }
         multiline={true}
         maxLength={200}
         numberOfLines={8}
         placeholderTextColor={"gray"}
-        style={[
-          styles.input,
-          {
-            paddingRight: isRecording ? 80 : 60,
-            color: theme.dark ? "white" : "black",
-            borderColor: theme.dark ? "#282828" : "lightgray",
-          },
-        ]}
+        style={
+          [
+            styles.input,
+            {
+              paddingRight: isRecording ? 80 : 60,
+              color: theme.dark ? "white" : "black",
+              borderColor: theme.dark ? "#282828" : "lightgray",
+            },
+          ]}
       />
       <View style={styles.inputButtonsContainer}>
-        {prompt.length === 0 && !isRecording && (
-          <TouchableOpacity onPress={startListening}>
-            <Feather name="mic" size={22} color={"gray"} />
-          </TouchableOpacity>
-        )}
-        {isRecording && (
-          <TouchableOpacity onPress={stopListening}>
-            <View className="w-7 h-7 mb-1.5 mr-1 bg-red-500 rounded-md" />
-          </TouchableOpacity>
-        )}
-        {!isRecording && (
-          <TouchableOpacity
-            style={[
-              styles.sendContainer,
-              { backgroundColor: theme.dark ? "white" : "black" },
-            ]}
-            onPress={handleSend}
-          >
-            {loading ? (
-              <ActivityIndicator
-                size="small"
-                color={theme.dark ? "black" : "white"}
-              />
-            ) : (
-              <AntDesign
-                name="arrow-up"
-                size={18}
-                color={theme.dark ? "black" : "white"}
-              />
-            )}
-          </TouchableOpacity>
-        )}
+        {
+          prompt.length === 0 && !isRecording && (
+            <TouchableOpacity onPress={startListening}>
+              <Feather name="mic" size={22} color={"gray"} />
+            </TouchableOpacity>
+          )}
+        {
+          isRecording && (
+            <TouchableOpacity onPress={stopListening}>
+              <View className="w-7 h-7 mb-1.5 mr-1 bg-red-500 rounded-md" />
+            </TouchableOpacity>
+          )
+        }
+        {
+          !isRecording && (
+            <TouchableOpacity
+              style={
+                [
+                  styles.sendContainer,
+                  { backgroundColor: theme.dark ? "white" : "black" },
+                ]
+              }
+              onPress={handleSend}
+            >
+              {
+                loading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.dark ? "black" : "white"}
+                  />
+                ) : (
+                  <AntDesign
+                    name="arrow-up"
+                    size={18}
+                    color={theme.dark ? "black" : "white"
+                    }
+                  />
+                )
+              }
+            </TouchableOpacity>
+          )}
       </View>
     </View>
   );
@@ -232,9 +258,24 @@ function Index() {
 
   useEffect(() => {
     const handleToken = async () => {
-      const userToken = await getToken();
-      console.log(userToken);
-      token.current = userToken;
+      try {
+        let userToken: string | null = null;
+        let counter = 10;
+        while (!userToken || userToken.length === 0) {
+          if (counter === 0) {
+            throw new Error("Failed to get token");
+          }
+          userToken = await getToken();
+          if (!userToken || userToken.length === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+          counter--;
+        }
+        console.log("userToken:", userToken);
+        token.current = userToken;
+      } catch (e: any) {
+        console.log(e.message);
+      }
     };
     handleToken();
   }, []);
@@ -333,12 +374,12 @@ function Index() {
   };
 
   useEffect(() => {
-    Tts.addEventListener("tts-start", (event) => {});
-    Tts.addEventListener("tts-progress", (event) => {});
+    Tts.addEventListener("tts-start", (event) => { });
+    Tts.addEventListener("tts-progress", (event) => { });
     Tts.addEventListener("tts-finish", (event) => {
       setPlayingId(null);
     });
-    Tts.addEventListener("tts-cancel", (event) => {});
+    Tts.addEventListener("tts-cancel", (event) => { });
 
     return () => {
       stopTts();
@@ -363,8 +404,8 @@ function Index() {
       className="flex-1"
       keyboardVerticalOffset={headerHeight}
     >
-      <SafeAreaView className="flex-1">
-        <View className="flex-1">
+      <SafeAreaView edges={["bottom"]} className="flex-1" >
+        <View className="flex-1" >
           <ChatWindow
             messages={messages}
             msgId={msgId.current || ""}
@@ -374,13 +415,14 @@ function Index() {
             stopTts={stopTts}
           />
         </View>
-        <Footer
+        < Footer
           theme={theme}
           prompt={prompt}
           setPrompt={setPrompt}
           handleSend={handleSend}
           loading={loading}
-          chatId={chatId || ""}
+          chatId={chatId || ""
+          }
         />
       </SafeAreaView>
     </KeyboardAvoidingView>

@@ -1,46 +1,73 @@
 {
   "expo": {
-    "scheme": "ai-animesh",
+    "name": "test",
+    "slug": "test",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "test",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "android": {
-      "edgeToEdgeEnabled": true,
-      "googleServicesFile": "./firebase/google-services.json",
-      "package": "com.AI.animesh",
-      "newArchEnabled": true
-    },
     "ios": {
+      "supportsTablet": true,
       "googleServicesFile": "./firebase/GoogleService-Info.plist",
-      "bundleIdentifier": "com.AI.animesh",
-      "newArchEnabled": true
+      "bundleIdentifier": "com.AI.animesh"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./firebase/google-services.json",
+      "package": "com.AI.animesh"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/crashlytics",
-      "@react-native-voice/voice",
       [
         "expo-build-properties",
         {
           "ios": {
             "useFrameworks": "static",
-            "forceStaticLinking": ["RNFBApp"],
-            "newArchEnabled": true
-          },
-          "android": {
-            "newArchEnabled": true
+            "forceStaticLinking": ["RNFBApp", "RNFBCrashlytics"],
+            "buildReactNativeFromSource": true
+          }
+        }
+      ],
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
           }
         }
       ],
       [
-        "expo-dev-client",
+        "@react-native-voice/voice",
         {
-          "launchMode": "most-recent"
+          "microphonePermission": "CUSTOM: Allow AI-Scholar to access the microphone",
+          "speechRecognitionPermission": "CUSTOM: Allow AI-Scholar to securely recognize user speech"
         }
-      ],
-      "expo-font",
-      "expo-router",
-      "expo-web-browser"
-    ]
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
   }
 }
