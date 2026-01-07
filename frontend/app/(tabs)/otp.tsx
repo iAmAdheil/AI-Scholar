@@ -3,60 +3,23 @@ import {
   View,
   StyleSheet,
   Image,
-  TouchableWithoutFeedback,
   Keyboard,
   Platform,
   TouchableOpacity,
   Text,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { OtpInput } from "react-native-otp-entry";
 import { useFocusEffect, useRouter } from "expo-router";
-import useConfirm from "@/store/confirm";
-import useTheme from "@/store/theme";
-import { storeToken } from "@/utils/token";
-
-function Input({
-  disabled,
-  setDigits,
-}: {
-  disabled: boolean;
-  setDigits: (digits: string) => void;
-}) {
-  const { theme } = useTheme();
-  return (
-    <View className="w-full flex flex-row justify-between items-center gap-2">
-      <OtpInput
-        autoFocus={false}
-        numberOfDigits={6}
-        focusColor="#1DA1F2"
-        onTextChange={(otp) => setDigits(otp)}
-        disabled={disabled}
-        theme={{
-          pinCodeTextStyle: {
-            ...inputStyles.pinCodeTextStyle,
-            color: theme === "dark" ? "white" : "black",
-          },
-        }}
-      />
-    </View>
-  );
-}
-
-const inputStyles = StyleSheet.create({
-  pinCodeTextStyle: {
-    fontSize: 24,
-    fontWeight: "400",
-  },
-});
+import { useConfirmObj } from "@/store/confirmObj";
+import { fetchToken } from "@/utils/token";
+import InputOtp from "@/components/app/input-otp";
 
 function Otp() {
-  const { confirm } = useConfirm();
   const router = useRouter();
 
-  const [digits, setDigits] = useState<string>("");
+  const { confirmObj } = useConfirmObj();
 
+  const [digits, setDigits] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const disabled = useMemo(() => {
@@ -80,19 +43,18 @@ function Otp() {
 
   const handleOtpSubmit = async () => {
     try {
-      if (!confirm) {
-        throw new Error("Confirmation not found");
+      if (!confirmObj) {
+        throw new Error("Confirmation object not found");
       }
       setLoading(true);
-      const userCredential = await confirm.confirm(digits);
+      const userCredential = await confirmObj.confirm(digits);
       if (!userCredential) {
-        throw new Error("User credential not found");
+        throw new Error("User credentials not found");
       }
-      const result = await storeToken(userCredential.user.uid);
+      const result = await fetchToken(userCredential.user.uid);
       if (result === 0) {
-        throw new Error("Failed to store token");
+        throw new Error("Failed to fetch token");
       }
-      router.navigate("/(drawer)");
     } catch (e: any) {
       console.log(e);
       router.back();
@@ -100,53 +62,44 @@ function Otp() {
   };
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View
-          className={`flex-1 w-[90%] flex flex-col relative ${Platform.OS === "ios" ? "pt-10 pb-20" : "pt-20 pb-40"}`}
+    <View
+      className={`w-full relative flex-1 flex flex-col ${Platform.OS === "ios" ? "pt-10 pb-20" : "pt-20 pb-40"}`}
+    >
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("@/assets/new-images/logo.png")}
+          className="w-52 h-52"
+        />
+      </View>
+      <InputOtp setDigits={setDigits} disabled={loading} />
+      <View className="w-full" style={styles.bottomContainer}>
+        <TouchableOpacity
+          onPress={() => handleOtpSubmit()}
+          style={[
+            styles.button,
+            {
+              backgroundColor: loading || disabled ? "gray" : "#1DA1F2",
+            },
+          ]}
+          className="flex flex-row justify-center items-center gap-6"
+          disabled={loading || disabled}
         >
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("@/assets/new-images/logo.png")}
-              className="w-52 h-52"
-            />
-          </View>
-          <Input disabled={loading} setDigits={setDigits} />
-          <View className="w-full" style={styles.bottomContainer}>
-            <TouchableOpacity
-              onPress={() => handleOtpSubmit()}
-              style={[
-                styles.button,
-                {
-                  backgroundColor: loading || disabled ? "gray" : "#1DA1F2",
-                },
-              ]}
-              className="flex flex-row items-center justify-center gap-6"
-              disabled={loading || disabled}
-            >
-              <Text style={[styles.buttonText]}>
-                {!loading ? (
-                  <Text style={[styles.buttonText]}>Continue</Text>
-                ) : (
-                  <ActivityIndicator size="small" color="#fff" />
-                )}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+          <Text style={[styles.buttonText]}>
+            {!loading ? (
+              <Text style={[styles.buttonText]}>Continue</Text>
+            ) : (
+              <ActivityIndicator size="small" color="#fff" />
+            )}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 export default Otp;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   logoContainer: {
     marginHorizontal: "auto",
     marginBottom: 40,

@@ -1,30 +1,27 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { useToken } from "@/store/token";
 
-export const getToken = async () => {
-  const token = await AsyncStorage.getItem("token");
-  return token;
-};
-
-export const storeToken = async (firebaseId: string) => {
+export const fetchToken = async (fid: string) => {
   try {
+    const { updateToken } = useToken();
     const response = await axios.post(
       `${process.env.EXPO_PUBLIC_BACKEND_URL}/auth/signin`,
       {
-        fid: firebaseId,
+        fid
       },
     );
     if (response.status === 200 && response.data.token) {
-      await AsyncStorage.setItem("token", response.data.token);
+      updateToken(response.data.token);
       return 1;
     }
     return 0;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.error(error.msg || "Something went wrong during login");
     return 0;
   }
 };
 
-export const removeToken = async () => {
-  await AsyncStorage.removeItem("token");
+export const removeToken = () => {
+  const { deleteToken } = useToken();
+  deleteToken();
 };

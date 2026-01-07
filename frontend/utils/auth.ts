@@ -4,7 +4,7 @@ import {
   isSuccessResponse,
 } from "@react-native-google-signin/google-signin";
 import auth from "@react-native-firebase/auth";
-import { removeToken, storeToken } from "./token";
+import { removeToken, fetchToken } from "./token";
 
 export const googleSignIn = async () => {
   try {
@@ -20,14 +20,17 @@ export const googleSignIn = async () => {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       const userCredential =
         await auth().signInWithCredential(googleCredential);
-      const result = await storeToken(userCredential.user.uid);
+
+      const result = await fetchToken(userCredential.user.uid);
       if (result === 0) {
         throw new Error("Failed to store token");
       }
+
       console.log("Signed in to Firebase with Google");
     }
   } catch (error) {
     console.error("Sign-in error:", error);
+    signOut();
   }
 };
 
@@ -47,5 +50,5 @@ export const signOut = async () => {
   GoogleSignin.configure();
   await GoogleSignin.signOut();
   await auth().signOut();
-  await removeToken();
+  removeToken();
 };

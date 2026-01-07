@@ -1,40 +1,82 @@
 import "@/global.css";
+
+import { View, StyleSheet, Keyboard, TouchableWithoutFeedback } from "react-native";
 import { useEffect, useState } from "react";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSequence,
-  withTiming,
-  withRepeat,
-} from "react-native-reanimated";
-import { View, Image } from "react-native";
-import MaskedView from "@react-native-masked-view/masked-view";
-import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
+import axios from "axios";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useAuth } from "@/hooks/useAuth";
-import { SafeAreaView } from "react-native-safe-area-context";
-import useTheme from "@/store/theme";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
+import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/store/theme";
+import { useToken } from "@/store/token";
+import { useChats } from "@/store/chats";
+import Loader from "@/components/ui/loader";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { theme } = useTheme();
-  const { route, loading } = useAuth();
   const router = useRouter();
-
-  const [splashLoader, setSplashLoader] = useState(true);
-
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  const { theme } = useTheme();
+  const { token } = useToken();
+  const { updateChats } = useChats();
+
+  const { route, loadRoute } = useAuth();
+
+  const [splashLoader, setSplashLoader] = useState(true);
+  const [authStat, setAuthStat] = useState(false);
+  const [loadChats, setLoadChats] = useState(false);
+
+  useEffect(() => {
+    if (!loadRoute && route) {
+      console.log("Navigating to route:", route);
+      if (route === "/(tabs)") {
+        setAuthStat(true);
+      }
+      router.navigate(route);
+    }
+  }, [route, loadRoute]);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        setLoadChats(true);
+        const res: any = await axios.get(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (res.status !== 200) {
+          throw new Error(res.data.msg || "Something went wrong");
+        }
+        console.log("Chats fetched successfully");
+        updateChats(res.data.chats);
+      } catch (error: any) {
+        console.error(error.msg || "Something went wrong");
+        updateChats([]);
+      } finally {
+        setLoadChats(false);
+      }
+    }
+
+    if (token && token.length > 0 && authStat) {
+      fetchChats();
+    }
+  }, [token, authStat])
 
   useEffect(() => {
     if (loaded) {
@@ -43,27 +85,19 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
-    if (!loading && route) {
-      console.log("Navigating to route:", route);
-      //@ts-ignore
-      router.navigate(`${route}`);
-    }
-  }, [route, loading]);
-
-  useEffect(() => {
     setTimeout(() => {
       setSplashLoader(false);
     }, 5000);
   }, []);
 
-  if (!loaded || loading || splashLoader) {
+  if (loadChats || loadRoute || splashLoader) {
     return (
       <SafeAreaView
         className="flex-1"
         style={{ backgroundColor: theme === "dark" ? "black" : "white" }}
       >
         <View className="flex-1 justify-center items-center">
-          <LoadingLogo theme={(theme as "dark" | "light") || "light"} />
+          <Loader theme={theme} />
         </View>
       </SafeAreaView>
     );
@@ -71,89 +105,31 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{ headerShown: false, presentation: "modal" }}
-        />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <SafeAreaProvider>
+        <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: theme === "dark" ? "black" : "white" }]}>
+          <StatusBar hidden={false} style={theme === "dark" ? "light" : "dark"} />
+          <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{ headerShown: false, presentation: "modal" }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </View>
+          </TouchableWithoutFeedback>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </ThemeProvider >
   );
 }
 
-function LoadingLogo({ theme }: { theme: "dark" | "light" }) {
-  const translateY = useSharedValue(200);
-
-  useEffect(() => {
-    // Define the animation: move to y: 500 and back to y: 0
-    translateY.value = withRepeat(
-      withSequence(
-        // withTiming(160, { duration: 2500 }), // Move down 100pxw
-        withTiming(0, { duration: 2500 }), // Move back to 0
-        withTiming(200, { duration: 2500 }), // Move up 100px
-      ),
-      -1, // Infinite loop
-      true, // Do not reverse
-    );
-  }, []);
-
-  // Animated style for the white bar
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return (
-    <MaskedView
-      androidRenderingMode="software"
-      style={{
-        flexDirection: "row",
-        height: 250,
-      }}
-      maskElement={
-        <View
-          style={{
-            height: 250,
-            backgroundColor: "transparent",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Image
-            source={require("@/assets/new-images/logo.png")}
-            className="w-52 h-52"
-          />
-        </View>
-      }
-    >
-      <View
-        style={{
-          flex: 1,
-          position: "relative",
-          overflow: "hidden",
-          height: "100%",
-          width: "100%",
-          backgroundColor: theme === "dark" ? "#1c1c1c" : "#dbdbdb",
-        }}
-      >
-        <Animated.View
-          style={[
-            {
-              position: "absolute", // Ensure the bar is positioned over the image
-              width: "100%",
-              height: 30,
-              borderRadius: 2,
-              backgroundColor: "#999999",
-              zIndex: 10, // Place above the image
-            },
-            animatedStyle, // Apply the animated style
-          ]}
-        />
-      </View>
-    </MaskedView>
-  );
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+});

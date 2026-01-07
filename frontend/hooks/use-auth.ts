@@ -3,25 +3,25 @@ import auth from "@react-native-firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const useAuth = () => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [route, setRoute] = useState<string | null>(null);
+  const [route, setRoute] = useState<"/(tabs)" | "/(drawer)">("/(tabs)");
+  const [loadRoute, setLoadRoute] = useState<boolean>(true);
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(async (user) => {
       if (user) {
-        setRoute("(drawer)");
+        setRoute("/(drawer)");
       } else {
-        setRoute("(tabs)");
+        setRoute("/(tabs)");
         await AsyncStorage.removeItem("token");
       }
-      setLoading(false);
+      setLoadRoute(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   return {
-    loading,
+    loadRoute,
     route,
   };
 };

@@ -1,67 +1,35 @@
+import { Platform } from "react-native";
 import { Drawer } from "expo-router/drawer";
-import CustomDrawerContent from "@/components/app/sidebar";
-import { Platform, StyleSheet, TouchableOpacity } from "react-native";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { useRouter } from "expo-router";
 import { useTheme } from "@react-navigation/native";
+import SideBar from "@/components/app/sidebar";
+import Avatar from "@/components/app/header-avatar";
 
 export default function DrawerLayout() {
   const theme = useTheme();
+  const DRAWER_OPTIONS = {
+    headerTitle: "",
+    headerShadowVisible: Platform.OS === "android" ? false : true,
+    headerStyle: {
+      backgroundColor: theme.dark ? "black" : "transparent",
+      borderBottomColor: theme.dark ? "#282828" : "lightgray",
+      borderBottomWidth: 0.5,
+    },
+    headerShown: true,
+    headerRight: () => <Avatar />,
+    headerRightContainerStyle: {
+      paddingRight: 15,
+      paddingBottom: 6,
+    },
+  };
   return (
     <Drawer
       initialRouteName="index"
-      drawerContent={(props) => <CustomDrawerContent props={props} />}
+      drawerContent={(props) => <SideBar props={props} />}
     >
       <Drawer.Screen
         name="index"
-        options={{
-          headerTitle: "",
-          headerShadowVisible: Platform.OS === "android" ? false : true,
-          headerStyle: {
-            backgroundColor: theme.dark ? "black" : "transparent",
-            borderBottomColor: theme.dark ? "#282828" : "lightgray",
-            borderBottomWidth: 0.5,
-          },
-          headerShown: true,
-          headerRight: () => <Settings />,
-          headerRightContainerStyle: {
-            paddingRight: 15,
-            paddingBottom: 6,
-          },
-        }}
+        options={DRAWER_OPTIONS}
       />
     </Drawer>
   );
 }
-
-function Settings() {
-  const router = useRouter();
-  const theme = useTheme();
-  return (
-    <TouchableOpacity
-      style={[
-        footerStyles.avatorContainer,
-        {
-          backgroundColor: theme.dark ? "#282828" : "black",
-          borderColor: theme.dark ? "#282828" : "black",
-        },
-      ]}
-      onPress={() => router.push("/modal")}
-    >
-      <FontAwesome5 name="user-alt" size={12} color={"white"} />
-    </TouchableOpacity>
-  );
-}
-
-const footerStyles = StyleSheet.create({
-  avatorContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    width: 36,
-    height: 36,
-    padding: 4,
-    borderRadius: 20,
-  },
-});

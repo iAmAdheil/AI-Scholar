@@ -7,36 +7,35 @@ import {
   Text,
   Image,
   ActivityIndicator,
-  TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from "react-native";
 import { useRouter, usePathname } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { phoneSignIn, googleSignIn } from "@/utils/signin";
+import { phoneSignIn, googleSignIn } from "@/utils/auth";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import useConfirm from "@/store/confirm";
-import useTheme from "@/store/theme";
+import { useConfirmObj } from "@/store/confirmObj";
+import { useTheme } from "@/store/theme";
 
 function Signin() {
   const pathname = usePathname();
   const router = useRouter();
-  const { updateConfirm } = useConfirm();
+
   const { theme } = useTheme();
+  const { updateConfirmObj } = useConfirmObj();
 
+  const [activeInput, setActiveInput] = useState<"phone" | "">("");
   const [loading, setLoading] = useState(false);
-  const [activeInput, setActiveInput] = useState<string>("");
 
-  const [mobile, setMobile] = useState<string>("");
+  const [number, setNumber] = useState<string>("");
 
   const disabled = useMemo(() => {
-    return mobile.length !== 10;
-  }, [mobile]);
+    return number.length !== 10;
+  }, [number]);
 
   useEffect(() => {
     setLoading(false);
-    setMobile("");
+    setNumber("");
   }, []);
 
   useEffect(() => {
@@ -47,12 +46,12 @@ function Signin() {
     try {
       Keyboard.dismiss();
       setLoading(true);
-      if (mobile.length !== 10) {
+      if (number.length !== 10) {
         return;
       }
-      const confirmation = await phoneSignIn(mobile);
+      const confirmation = await phoneSignIn(number);
       if (confirmation) {
-        updateConfirm(confirmation);
+        updateConfirmObj(confirmation);
         router.push("/(tabs)/otp");
       }
     } catch (e: any) {
@@ -67,108 +66,101 @@ function Signin() {
   };
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View
+      className={`w-full flex-1 flex items-center ${Platform.OS === "ios" ? "pt-10" : "pt-20"}`}
+    >
+      <View className="w-[90%] flex flex-col justify-center">
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("@/assets/new-images/logo.png")}
+            className="w-52 h-52"
+          />
+        </View>
         <View
-          className={`flex-1 w-[90%] flex flex-col relative justify-center ${Platform.OS === "ios" ? "pt-10" : "pt-20"}`}
+          className={`flex-1 flex flex-col gap-10 ${Platform.OS === "ios" ? "pb-10" : "pb-20"}`}
         >
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("@/assets/new-images/logo.png")}
-              className="w-52 h-52"
+          <View style={styles.inputContainer}>
+            <Feather
+              name="phone"
+              size={18}
+              color={activeInput === "phone" ? "#1DA1F2" : "gray"}
+              className="absolute left-5 top-2.5 z-10"
+            />
+            <Text
+              style={[
+                styles.phoneCountryCode,
+                { color: theme === "dark" ? "white" : "black" },
+              ]}
+            >
+              +91
+            </Text>
+            <TextInput
+              keyboardType="numeric"
+              maxLength={10}
+              value={number}
+              onChangeText={setNumber}
+              style={[
+                styles.phoneInput,
+                {
+                  borderColor: activeInput === "phone" ? "#1DA1F2" : "gray",
+                  color: theme === "dark" ? "white" : "black",
+                },
+              ]}
+              placeholder="Enter your phone number"
+              placeholderTextColor={"gray"}
+              onFocus={() => {
+                setActiveInput("phone");
+              }}
+              onBlur={() => {
+                setActiveInput("");
+              }}
             />
           </View>
-          <View
-            className={`flex-1 flex flex-col gap-10 ${Platform.OS === "ios" ? "pb-10" : "pb-20"}`}
+          <TouchableOpacity
+            onPress={async () => {
+              await handlePhoneSignIn();
+            }}
+            style={[
+              styles.button,
+              {
+                backgroundColor: loading || disabled ? "gray" : "#1DA1F2",
+              },
+            ]}
+            disabled={loading || disabled}
           >
-            <View style={styles.inputContainer}>
-              <Feather
-                name="phone"
-                size={18}
-                color={activeInput === "phone" ? "#1DA1F2" : "gray"}
-                className="absolute z-10 left-5 top-2.5"
-              />
-              <Text
-                style={[
-                  styles.phoneCountryCode,
-                  { color: theme === "dark" ? "white" : "black" },
-                ]}
-              >
-                +91
-              </Text>
-              <TextInput
-                keyboardType="numeric"
-                maxLength={10}
-                value={mobile}
-                onChangeText={setMobile}
-                style={[
-                  styles.phoneInput,
-                  {
-                    borderColor: activeInput === "phone" ? "#1DA1F2" : "gray",
-                    color: theme === "dark" ? "white" : "black",
-                  },
-                ]}
-                placeholder="Enter your phone number"
-                placeholderTextColor={"gray"}
-                onFocus={() => {
-                  setActiveInput("phone");
-                }}
-                onBlur={() => {
-                  setActiveInput("");
-                }}
-              />
-            </View>
+            {!loading ? (
+              <Text style={[styles.buttonText]}>Generate OTP</Text>
+            ) : (
+              <ActivityIndicator size="small" color="#fff" />
+            )}
+          </TouchableOpacity>
+
+          <View className="w-full" style={styles.bottomContainer}>
             <TouchableOpacity
-              onPress={async () => {
-                await handlePhoneSignIn();
-              }}
+              // onPress={googleSignIn}
+              onPress={handleTest}
               style={[
                 styles.button,
                 {
-                  backgroundColor: loading || disabled ? "gray" : "#1DA1F2",
+                  backgroundColor: !loading ? "#1DA1F2" : "gray",
                 },
               ]}
-              disabled={loading || disabled}
+              className="flex flex-row items-center justify-center gap-6"
+              disabled={loading}
             >
-              {!loading ? (
-                <Text style={[styles.buttonText]}>Generate OTP</Text>
-              ) : (
-                <ActivityIndicator size="small" color="#fff" />
-              )}
+              <AntDesign name="google" size={22} color="white" />
+              <Text style={[styles.buttonText]}>Login with Google</Text>
             </TouchableOpacity>
-
-            <View className="w-full" style={styles.bottomContainer}>
-              <TouchableOpacity
-                // onPress={googleSignIn}
-                onPress={handleTest}
-                style={[
-                  styles.button,
-                  {
-                    backgroundColor: !loading ? "#1DA1F2" : "gray",
-                  },
-                ]}
-                className="flex flex-row items-center justify-center gap-6"
-                disabled={loading}
-              >
-                <AntDesign name="google" size={22} color="white" />
-                <Text style={[styles.buttonText]}>Login with Google</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
 export default Signin;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   logoContainer: {
     marginHorizontal: "auto",
     marginBottom: 40,

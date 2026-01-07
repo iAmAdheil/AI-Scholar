@@ -5,10 +5,10 @@
   "exclude": [
     "**/node_modules",
     "**/__pycache__",
-    "service/venv"
+    "service/venv3.12"
   ],
   "venvPath": "service",
-  "venv": "venv",
+  "venv": "venv3.12",
   "pythonVersion": "3.12",
   "verboseOutput": true,
   "executionEnvironments": [

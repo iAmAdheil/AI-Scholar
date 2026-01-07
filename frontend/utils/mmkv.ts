@@ -4,10 +4,20 @@ import { createMMKV } from 'react-native-mmkv';
 // 1. Create the single instance here
 export const storage = createMMKV();
 
-// 2. You can also create centralized methods for complex data (e.g., a theme object)
-export const ThemeStorage = {
-  get: () => storage.getString('app-theme') || '',
-  set: (theme: string | null) => {
+export const TokenStore = {
+  get: () => storage.getString('token') || null,
+  set: (token: string) => {
+    if (token && token.length > 0) {
+      storage.set('token', token);
+    } else {
+      storage.remove('token');
+    }
+  },
+};
+
+export const ThemeStore = {
+  get: () => storage.getString('app-theme') as 'light' | 'dark' || 'light',
+  set: (theme: 'light' | 'dark') => {
     if (theme) {
       storage.set('app-theme', theme);
     } else {
