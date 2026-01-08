@@ -130,7 +130,6 @@ function Page() {
               <ActivityIndicator size="small" color="#fff" />
             )}
           </TouchableOpacity>
-
           <View className="w-full" style={styles.bottomContainer}>
             <TouchableOpacity
               // onPress={googleSignIn}
@@ -138,7 +137,7 @@ function Page() {
               style={[
                 styles.button,
                 {
-                  backgroundColor: !loading ? "#1DA1F2" : "gray",
+                  backgroundColor: !loading ? "#008000" : "gray",
                 },
               ]}
               className="flex flex-row items-center justify-center gap-6"

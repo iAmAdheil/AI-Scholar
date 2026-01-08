@@ -47,8 +47,12 @@ export const phoneLogin: (mobile: string) => Promise<any> = async (mobile: strin
 }
 
 export const logout = async () => {
-  GoogleSignin.configure();
-  await GoogleSignin.signOut();
-  await auth().signOut();
-  console.log("User logged out");
+  try {
+    GoogleSignin.configure();
+    await GoogleSignin.signOut();
+    await auth().signOut();
+    console.log("User logged out");
+  } catch (error: any) {
+    console.error(error.message || "Something went wrong during logout");
+  }
 };

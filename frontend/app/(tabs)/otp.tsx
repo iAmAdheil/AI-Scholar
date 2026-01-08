@@ -54,16 +54,7 @@ function Page() {
       if (!userCred) {
         throw new Error("User credentials not received from confirmation object");
       }
-      const response = await fetchToken(userCred.user.uid);
-      console.log("fetch token response:", response);
-      if (!response.token) {
-        throw new Error(response.msg);
-      }
-      updateToken(response.token);
     } catch (error: any) {
-      setTimeout(() => {
-        logout();
-      }, 1000);
       console.error(error.message || "Something went wrong during otp submission");
     }
   };
