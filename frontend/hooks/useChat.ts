@@ -1,6 +1,6 @@
 import ky from "ky";
 import { useState, useEffect } from "react";
-import useChatId from "@/store/chatId";
+import useChatId from "@/store/chat-id";
 
 export const useChat = () => {
   const [chat, setChat] = useState<any>(null);

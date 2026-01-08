@@ -1,27 +1,21 @@
 import axios from "axios";
-import { useToken } from "@/store/token";
 
-export const fetchToken = async (fid: string) => {
+export const fetchToken: (fid: string) => Promise<{ msg: string; token: string | null }> = async (fid: string) => {
   try {
-    const { updateToken } = useToken();
     const response = await axios.post(
       `${process.env.EXPO_PUBLIC_BACKEND_URL}/auth/signin`,
       {
         fid
       },
     );
-    if (response.status === 200 && response.data.token) {
-      updateToken(response.data.token);
-      return 1;
+    throw new Error("Failed token fetch")
+    if (response.status !== 200) {
+      throw new Error(response.data.msg)
     }
-    return 0;
+    console.log("Token fetched successfully");
+    return { msg: response.data.msg, token: response.data.token };
   } catch (error: any) {
     console.error(error.msg || "Something went wrong during login");
-    return 0;
+    return { msg: error.msg || "Something went wrong during login", token: null };
   }
-};
-
-export const removeToken = () => {
-  const { deleteToken } = useToken();
-  deleteToken();
 };

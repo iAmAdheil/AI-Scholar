@@ -6,7 +6,7 @@ import {
   View
 } from "react-native";
 import { StyleSheet } from "react-native";
-import useChatId from "@/store/chatId";
+import useChatId from "@/store/chat-id";
 import { type Chats } from "@/types";
 
 export default function Chats({

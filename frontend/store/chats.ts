@@ -6,15 +6,15 @@ interface Chat {
 }
 
 interface Chats {
-  chats: Chat[];
-  updateChats: (
+  value: Chat[];
+  update: (
     chats: Chat[]
   ) => void;
 }
 
 export const useChats = create<Chats>((set) => ({
-  chats: [],
-  updateChats: (
+  value: [],
+  update: (
     chats: Chat[]
-  ) => set({ chats }),
+  ) => set({ value: chats }),
 }));

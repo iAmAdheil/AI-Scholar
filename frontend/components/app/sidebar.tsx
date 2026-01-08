@@ -13,7 +13,7 @@ import { useTheme } from "@react-navigation/native";
 import Entypo from "@expo/vector-icons/Entypo";
 import SideBarChats from "./sidebar-chats";
 import { useChats } from "@/hooks/useChats";
-import useChatId from "@/store/chatId";
+import useChatId from "@/store/chat-id";
 
 export default function SideBar({
   props,

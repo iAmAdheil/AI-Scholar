@@ -20,7 +20,7 @@ import EventSource from "react-native-sse";
 import { Chunk, Message } from "@/types";
 import { generateId } from "@/utils/unique-id";
 import { getToken } from "@/utils/token";
-import useChatId from "@/store/chatId";
+import useChatId from "@/store/chat-id";
 import axios from "axios";
 import { type Chat } from "@/types";
 import Tts from "react-native-tts";

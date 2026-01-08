@@ -1,3 +1,5 @@
+// part of otp auth flow, for passing confirm object from one screen to another
+
 import { create } from "zustand";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 

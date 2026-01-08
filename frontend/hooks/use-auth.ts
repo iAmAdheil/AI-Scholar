@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import auth from "@react-native-firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TokenStore } from "@/utils/mmkv";
 
 export const useAuth = () => {
   const [route, setRoute] = useState<"/(tabs)" | "/(drawer)">("/(tabs)");
@@ -12,7 +12,7 @@ export const useAuth = () => {
         setRoute("/(drawer)");
       } else {
         setRoute("/(tabs)");
-        await AsyncStorage.removeItem("token");
+        TokenStore.set("");
       }
       setLoadRoute(false);
     });

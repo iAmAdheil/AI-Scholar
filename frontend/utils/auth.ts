@@ -4,9 +4,8 @@ import {
   isSuccessResponse,
 } from "@react-native-google-signin/google-signin";
 import auth from "@react-native-firebase/auth";
-import { removeToken, fetchToken } from "./token";
 
-export const googleSignIn = async () => {
+export const googleLogin: () => Promise<string | null> = async () => {
   try {
     const response = await GoogleSignin.signIn();
 
@@ -16,39 +15,40 @@ export const googleSignIn = async () => {
 
     if (isSuccessResponse(response)) {
       const idToken = response.data.idToken;
-
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       const userCredential =
         await auth().signInWithCredential(googleCredential);
-
-      const result = await fetchToken(userCredential.user.uid);
-      if (result === 0) {
-        throw new Error("Failed to store token");
-      }
-
       console.log("Signed in to Firebase with Google");
+      return userCredential.user.uid;
+    } else {
+      throw new Error("Failed to sign in to Firebase with Google");
     }
-  } catch (error) {
-    console.error("Sign-in error:", error);
-    signOut();
+  } catch (error: any) {
+    console.error("Sign-in error:", error.message);
+    logout();
+    return null;
   }
 };
 
-export async function phoneSignIn(mobile: string) {
+export const phoneLogin: (mobile: string) => Promise<any> = async (mobile: string) => {
   try {
     const phone = `+91${mobile}`;
-    console.log(phone);
     auth().settings.appVerificationDisabledForTesting = true;
     const confirmation = await auth().signInWithPhoneNumber(phone);
+    if (!confirmation) {
+      throw new Error("No confirmation object received after phone sign in");
+    }
+    console.log("Phone login successful");
     return confirmation;
-  } catch (e: any) {
-    console.log(e);
+  } catch (error: any) {
+    console.log(error.message || "Something went wrong during phone login");
+    return null;
   }
 }
 
-export const signOut = async () => {
+export const logout = async () => {
   GoogleSignin.configure();
   await GoogleSignin.signOut();
   await auth().signOut();
-  removeToken();
+  console.log("User logged out");
 };

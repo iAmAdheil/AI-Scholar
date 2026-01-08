@@ -11,17 +11,16 @@ import {
   Platform,
 } from "react-native";
 import { useRouter, usePathname } from "expo-router";
-import { phoneSignIn, googleSignIn } from "@/utils/auth";
+import { phoneLogin, googleLogin } from "@/utils/auth";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useConfirmObj } from "@/store/confirmObj";
 import { useTheme } from "@/store/theme";
 
-function Signin() {
-  const pathname = usePathname();
+function Page() {
   const router = useRouter();
 
-  const { theme } = useTheme();
+  const { value: theme } = useTheme();
   const { updateConfirmObj } = useConfirmObj();
 
   const [activeInput, setActiveInput] = useState<"phone" | "">("");
@@ -38,23 +37,20 @@ function Signin() {
     setNumber("");
   }, []);
 
-  useEffect(() => {
-    console.log(pathname);
-  }, [pathname]);
-
-  const handlePhoneSignIn = async () => {
+  const handlePhoneLogin = async () => {
     try {
       Keyboard.dismiss();
       setLoading(true);
       if (number.length !== 10) {
         return;
       }
-      const confirmation = await phoneSignIn(number);
-      if (confirmation) {
-        updateConfirmObj(confirmation);
+      const conObj = await phoneLogin(number);
+      if (conObj) {
+        updateConfirmObj(conObj);
         router.push("/(tabs)/otp");
       }
     } catch (e: any) {
+      console.error(e.message || "Something went wrong during phone login");
       alert("Something went wrong");
     } finally {
       setLoading(false);
@@ -69,7 +65,7 @@ function Signin() {
     <View
       className={`w-full flex-1 flex items-center ${Platform.OS === "ios" ? "pt-10" : "pt-20"}`}
     >
-      <View className="w-[90%] flex flex-col justify-center">
+      <View className="w-[90%] flex-1 flex flex-col justify-center">
         <View style={styles.logoContainer}>
           <Image
             source={require("@/assets/new-images/logo.png")}
@@ -118,7 +114,7 @@ function Signin() {
           </View>
           <TouchableOpacity
             onPress={async () => {
-              await handlePhoneSignIn();
+              await handlePhoneLogin();
             }}
             style={[
               styles.button,
@@ -158,7 +154,7 @@ function Signin() {
   );
 }
 
-export default Signin;
+export default Page;
 
 const styles = StyleSheet.create({
   logoContainer: {

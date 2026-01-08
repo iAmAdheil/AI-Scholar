@@ -8,15 +8,12 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
-import axios from "axios";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/store/theme";
-import { useToken } from "@/store/token";
-import { useChats } from "@/store/chats";
 import Loader from "@/components/ui/loader";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -28,55 +25,18 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  const { theme } = useTheme();
-  const { token } = useToken();
-  const { updateChats } = useChats();
+  const { value: theme } = useTheme();
 
   const { route, loadRoute } = useAuth();
 
   const [splashLoader, setSplashLoader] = useState(true);
-  const [authStat, setAuthStat] = useState(false);
-  const [loadChats, setLoadChats] = useState(false);
 
   useEffect(() => {
     if (!loadRoute && route) {
       console.log("Navigating to route:", route);
-      if (route === "/(tabs)") {
-        setAuthStat(true);
-      }
       router.navigate(route);
     }
   }, [route, loadRoute]);
-
-  useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        setLoadChats(true);
-        const res: any = await axios.get(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        if (res.status !== 200) {
-          throw new Error(res.data.msg || "Something went wrong");
-        }
-        console.log("Chats fetched successfully");
-        updateChats(res.data.chats);
-      } catch (error: any) {
-        console.error(error.msg || "Something went wrong");
-        updateChats([]);
-      } finally {
-        setLoadChats(false);
-      }
-    }
-
-    if (token && token.length > 0 && authStat) {
-      fetchChats();
-    }
-  }, [token, authStat])
 
   useEffect(() => {
     if (loaded) {
@@ -87,10 +47,10 @@ export default function RootLayout() {
   useEffect(() => {
     setTimeout(() => {
       setSplashLoader(false);
-    }, 5000);
+    }, 1000);
   }, []);
 
-  if (loadChats || loadRoute || splashLoader) {
+  if (loadRoute || splashLoader) {
     return (
       <SafeAreaView
         className="flex-1"

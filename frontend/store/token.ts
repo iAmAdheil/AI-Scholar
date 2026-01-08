@@ -2,22 +2,23 @@ import { create } from "zustand";
 import { TokenStore } from "@/utils/mmkv";
 
 interface Token {
-  token: string | null;
-  updateToken: (
+  value: string | null;
+  update: (
     token: string,
   ) => void;
-  deleteToken: () => void;
+  delete: () => void;
 }
 
 export const useToken = create<Token>((set) => ({
-  token: TokenStore.get() || null,
-  updateToken: (
+  value: TokenStore.get() && (TokenStore.get() as string).length > 0 ? TokenStore.get() : null,
+  update: (
     token: string,
   ) => {
-    set({ token });
+    set({ value: token });
     TokenStore.set(token);
   },
-  deleteToken: () => {
-    set({ token: null });
+  delete: () => {
+    set({ value: null });
+    TokenStore.set("");
   },
 }));

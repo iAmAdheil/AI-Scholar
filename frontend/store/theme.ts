@@ -2,18 +2,18 @@ import { create } from "zustand";
 import { ThemeStore } from "@/utils/mmkv";
 
 interface Theme {
-  theme: 'light' | 'dark';
-  updateTheme: (
+  value: 'light' | 'dark';
+  update: (
     theme: 'light' | 'dark',
   ) => void;
 }
 
 export const useTheme = create<Theme>((set) => ({
-  theme: ThemeStore.get() || 'light',
-  updateTheme: (
+  value: ThemeStore.get() || 'light',
+  update: (
     theme: 'light' | 'dark',
   ) => {
-    set({ theme });
+    set({ value: theme });
     ThemeStore.set(theme);
   },
 }));

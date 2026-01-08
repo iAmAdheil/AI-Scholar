@@ -7,14 +7,13 @@ import {
   Alert,
 } from "react-native";
 import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
-import { signOut } from "@/utils/auth";
+import { logout } from "@/utils/auth";
 import { useTheme } from "@/store/theme";
 
 export default function Modal() {
-  const { theme, updateTheme } = useTheme();
+  const { value: theme, update: updateTheme } = useTheme();
 
   const handleSignOut = async () => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
@@ -23,7 +22,7 @@ export default function Modal() {
         text: "Logout",
         onPress: async () => {
           router.dismiss();
-          await signOut();
+          await logout();
         },
       },
     ]);
