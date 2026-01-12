@@ -1,22 +1,13 @@
-import { memo, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Image,
   Dimensions,
   ActivityIndicator,
   FlatList,
 } from "react-native";
-import { useTheme } from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { type Message as MessageInterface } from "@/types";
-import Markdown from "react-native-markdown-display";
-import { LoaderKitView } from "react-native-loader-kit";
-import { getStyles } from "@/markdown";
+import Message from "./chat-window-msg";
 
 const windowWidth = Dimensions.get("window").width;
 

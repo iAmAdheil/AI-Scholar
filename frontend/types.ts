@@ -6,22 +6,22 @@ export interface Chunk {
 }
 
 export interface Message {
-  _id: string;
-  response: string;
+  id: string;
   prompt: string;
+  response: string;
   loading: boolean;
   streaming: boolean;
 }
-
-export type Chats = {
-  title: string;
-  chatId: string;
-  createdAt: string;
-}[];
 
 export type Chat = {
   _id: string;
   isUser: boolean;
   message: string;
+  createdAt: string;
+}[];
+
+export type Chats = {
+  title: string;
+  chatId: string;
   createdAt: string;
 }[];
