@@ -9,18 +9,12 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useConfirmObj } from "@/store/confirmObj";
-import { fetchToken } from "@/utils/token";
-import { useToken } from "@/store/token";
+import { useFocusEffect } from "expo-router";
+import { useConfirmObj } from "@/store/confirm-obj";
 import InputOtp from "@/components/app/input-otp";
-import { logout } from "@/utils/auth";
 
 function Page() {
-  const router = useRouter();
-
   const { confirmObj } = useConfirmObj();
-  const { update: updateToken } = useToken();
 
   const [digits, setDigits] = useState<string>("");
   const [loading, setLoading] = useState(false);

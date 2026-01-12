@@ -10,11 +10,11 @@ import {
   Keyboard,
   Platform,
 } from "react-native";
-import { useRouter, usePathname } from "expo-router";
+import { useRouter } from "expo-router";
 import { phoneLogin, googleLogin } from "@/utils/auth";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useConfirmObj } from "@/store/confirmObj";
+import { useConfirmObj } from "@/store/confirm-obj";
 import { useTheme } from "@/store/theme";
 
 function Page() {
@@ -47,7 +47,7 @@ function Page() {
       const conObj = await phoneLogin(number);
       if (conObj) {
         updateConfirmObj(conObj);
-        router.push("/(tabs)/otp");
+        router.push("/otp");
       }
     } catch (e: any) {
       console.error(e.message || "Something went wrong during phone login");
@@ -55,10 +55,6 @@ function Page() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTest = () => {
-    router.push("/(tabs)/test");
   };
 
   return (
@@ -133,7 +129,6 @@ function Page() {
           <View className="w-full" style={styles.bottomContainer}>
             <TouchableOpacity
               // onPress={googleSignIn}
-              onPress={handleTest}
               style={[
                 styles.button,
                 {

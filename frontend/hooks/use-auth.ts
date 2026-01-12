@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import auth from "@react-native-firebase/auth";
 import { fetchToken } from "@/utils/token";
-import { TokenStore } from "@/utils/mmkv";
 import { logout } from "@/utils/auth";
 
 export const useAuth = () => {
-  const [route, setRoute] = useState<"/(tabs)" | "/(drawer)">("/(tabs)");
+  const [route, setRoute] = useState<"/(tabs)/login" | "/(drawer)/chat">("/(tabs)/login");
+  const [token, setToken] = useState<string>("");
   const [loadRoute, setLoadRoute] = useState<boolean>(true);
 
   useEffect(() => {
@@ -17,13 +17,11 @@ export const useAuth = () => {
           if (!response.token) {
             throw new Error(response.msg);
           }
-          TokenStore.set(response.token);
-          setRoute("/(drawer)");
-        } else {
-          setRoute("/(tabs)");
-          TokenStore.set("");
+          setToken(response.token);
+          setRoute("/(drawer)/chat");
+          return;
         }
-        setLoadRoute(false);
+        setRoute("/(tabs)/login");
       } catch (error: any) {
         console.error(error.message || "Something went wrong during auth state change");
         logout();
@@ -38,5 +36,6 @@ export const useAuth = () => {
   return {
     loadRoute,
     route,
+    token,
   };
 };

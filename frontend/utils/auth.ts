@@ -4,6 +4,7 @@ import {
   isSuccessResponse,
 } from "@react-native-google-signin/google-signin";
 import auth from "@react-native-firebase/auth";
+import { TokenStore } from "./mmkv";
 
 export const googleLogin: () => Promise<string | null> = async () => {
   try {
@@ -49,9 +50,21 @@ export const phoneLogin: (mobile: string) => Promise<any> = async (mobile: strin
 export const logout = async () => {
   try {
     GoogleSignin.configure();
-    await GoogleSignin.signOut();
-    await auth().signOut();
-    console.log("User logged out");
+    TokenStore.set("");
+    let user;
+    user = GoogleSignin.getCurrentUser()
+    if (user) {
+      await GoogleSignin.signOut();
+      console.log("User logged out");
+      return;
+    }
+    user = auth().currentUser;
+    if (user) {
+      await auth().signOut();
+      console.log("User logged out");
+      return;
+    }
+    console.log("No user found");
   } catch (error: any) {
     console.error(error.message || "Something went wrong during logout");
   }

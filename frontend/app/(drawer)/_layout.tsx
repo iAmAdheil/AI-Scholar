@@ -23,11 +23,11 @@ export default function DrawerLayout() {
   };
   return (
     <Drawer
-      initialRouteName="index"
+      initialRouteName="chat"
       drawerContent={(props) => <SideBar props={props} />}
     >
       <Drawer.Screen
-        name="index"
+        name="chat"
         options={DRAWER_OPTIONS}
       />
     </Drawer>

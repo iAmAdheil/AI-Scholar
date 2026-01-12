@@ -2,16 +2,16 @@ import "@/global.css";
 
 import { View, StyleSheet, Keyboard, TouchableWithoutFeedback } from "react-native";
 import { useEffect, useState } from "react";
+import { Stack, router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { useFonts } from "expo-font";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/store/theme";
 import Loader from "@/components/ui/loader";
@@ -20,21 +20,29 @@ import Loader from "@/components/ui/loader";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const router = useRouter();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   const { value: theme } = useTheme();
 
-  const { route, loadRoute } = useAuth();
+  const { route, token, loadRoute } = useAuth();
 
   const [splashLoader, setSplashLoader] = useState(true);
 
   useEffect(() => {
     if (!loadRoute && route) {
       console.log("Navigating to route:", route);
-      router.navigate(route);
+      if (route === "/(tabs)/login") {
+        router.navigate(route);
+      } else if (route === "/(drawer)/chat") {
+        router.navigate({
+          pathname: route,
+          params: {
+            token,
+          },
+        });
+      }
     }
   }, [route, loadRoute]);
 
@@ -52,37 +60,32 @@ export default function RootLayout() {
 
   if (loadRoute || splashLoader) {
     return (
-      <SafeAreaView
-        className="flex-1"
-        style={{ backgroundColor: theme === "dark" ? "black" : "white" }}
-      >
-        <View className="flex-1 justify-center items-center">
-          <Loader theme={theme} />
-        </View>
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: theme === "dark" ? "black" : "white" }]}>
+          <View className="flex-1 justify-center items-center">
+            <Loader theme={theme} />
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   return (
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-      <SafeAreaProvider>
-        <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: theme === "dark" ? "black" : "white" }]}>
-          <StatusBar hidden={false} style={theme === "dark" ? "light" : "dark"} />
-          <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
-            <View style={{ flex: 1 }}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="modal"
-                  options={{ headerShown: false, presentation: "modal" }}
-                />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            </View>
-          </TouchableWithoutFeedback>
-        </SafeAreaView>
-      </SafeAreaProvider>
+      <StatusBar hidden={false} style={theme === "dark" ? "light" : "dark"} />
+      <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="modal"
+              options={{ headerShown: false, presentation: "modal" }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </View>
+      </TouchableWithoutFeedback>
     </ThemeProvider >
   );
 }
@@ -90,6 +93,5 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
   },
 });

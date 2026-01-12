@@ -20,10 +20,11 @@ export default function SideBar({
 }: {
   props: DrawerContentComponentProps;
 }) {
-  const theme = useTheme();
   const drawerStatus = useDrawerStatus();
 
-  const { updateChatId } = useChatId();
+  const theme = useTheme();
+
+  const { update: updateCId } = useChatId();
 
   const [fetch, setFetch] = useState<boolean>(false);
   const { chats, loading } = useChats(fetch);
@@ -36,13 +37,13 @@ export default function SideBar({
     }
   }, [drawerStatus]);
 
-  const closeDrawer = () => {
-    props.navigation.closeDrawer();
+  const handleNew = () => {
+    updateCId("");
+    closeDrawer();
   };
 
-  const handleNewChat = () => {
-    updateChatId(null);
-    closeDrawer();
+  const closeDrawer = () => {
+    props.navigation.closeDrawer();
   };
 
   return (
@@ -54,7 +55,7 @@ export default function SideBar({
     >
       <TouchableOpacity
         style={styles.newChatCont}
-        onPress={() => handleNewChat()}
+        onPress={handleNew}
       >
         <Entypo
           name="new-message"

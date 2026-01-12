@@ -9,39 +9,39 @@ import {
   ActivityIndicator,
   PermissionsAndroid,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@react-navigation/native";
-import Voice from "@react-native-voice/voice";
+import axios from "axios";
+import { useLocalSearchParams } from 'expo-router';
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useHeaderHeight } from "@react-navigation/elements";
-import ChatWindow from "@/components/app/chat-window";
 import EventSource from "react-native-sse";
+import Tts from "react-native-tts";
+import Voice from "@react-native-voice/voice";
 import { Chunk, Message } from "@/types";
 import { generateId } from "@/utils/unique-id";
-import { getToken } from "@/utils/token";
+import { useTheme } from "@/store/theme";
 import useChatId from "@/store/chat-id";
-import axios from "axios";
 import { type Chat } from "@/types";
-import Tts from "react-native-tts";
+import ChatWindow from "@/components/app/chat-window";
 
 const formatChat = (convo: Chat) => {
   const messages = [];
 
   for (let i = 0; i < convo.length / 2; i++) {
     const msgId = generateId();
-
     const promptMsg = convo[2 * i];
     const resMsg = convo[2 * i + 1];
+
     messages.push({
-      id: msgId,
+      _id: msgId,
       response: resMsg.message,
       prompt: promptMsg.message,
-      isLoading: false,
+      streaming: false,
+      loading: false,
     });
   }
 
-  return { messages, lastMsgId: messages[messages.length - 1].id || "" };
+  return { messages, lastMId: messages[messages.length - 1]._id || "" };
 };
 
 function Footer({
@@ -199,113 +199,94 @@ function Footer({
 }
 
 function Index() {
-  const theme = useTheme();
+  const { token } = useLocalSearchParams();
+
   const headerHeight = useHeaderHeight();
-  const { chatId } = useChatId();
 
-  const [loadChat, setLoadChat] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { value: theme } = useTheme();
+  const { value: cId } = useChatId();
 
-  const es = useRef<EventSource | null>(null);
-  const msgId = useRef<string | null>(null);
-  const chatIdRef = useRef<string | null>(null);
-  const token = useRef<string | null>(null);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [playingId, setPlayingId] = useState<string | null>(null);
 
+  const esRef = useRef<EventSource | null>(null);
+  const msgIdRef = useRef<string | null>(null);
+  const chatIdRef = useRef<string>("");
+
   useEffect(() => {
     const fetchChat = async () => {
-      setLoadChat(true);
+      setLoadingChat(true);
       setPrompt("");
-      const userToken = await getToken();
       try {
         const res: any = await axios.get(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatId}`,
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${cId}`,
           {
-            headers: { Authorization: `Bearer ${userToken}` },
+            headers: { Authorization: `Bearer ${token}` },
           },
         );
+
         const convo: Chat = res.data.chat.conversation || [];
-        const { messages, lastMsgId } = formatChat(convo);
+        const { messages, lastMId } = formatChat(convo);
         setMessages(messages);
-        msgId.current = lastMsgId;
+        msgIdRef.current = lastMId;
+
       } catch (e: any) {
         console.log(e);
       } finally {
-        setLoadChat(false);
+        setLoadingChat(false);
       }
     };
-    chatIdRef.current = chatId;
-    if (chatId) {
-      console.log("fetch Chat:", chatId);
+
+    if (cId) {
+      chatIdRef.current = cId;
+      console.log("fetch Chat:", cId);
       fetchChat();
     }
-
-    return () => {
-      // Clean up EventSource connection
-      if (es.current) {
-        es.current.close();
-        es.current = null;
-      }
-      msgId.current = null;
-      chatIdRef.current = null;
-      setMessages([]);
-    };
-  }, [chatId]);
+  }, [cId]);
 
   useEffect(() => {
-    const handleToken = async () => {
-      try {
-        let userToken: string | null = null;
-        let counter = 10;
-        while (!userToken || userToken.length === 0) {
-          if (counter === 0) {
-            throw new Error("Failed to get token");
-          }
-          userToken = await getToken();
-          if (!userToken || userToken.length === 0) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
-          counter--;
-        }
-        console.log("userToken:", userToken);
-        token.current = userToken;
-      } catch (e: any) {
-        console.log(e.message);
+    return () => {
+      // Clean up EventSource connection
+      if (esRef.current) {
+        esRef.current.close();
+        esRef.current = null;
       }
-    };
-    handleToken();
-  }, []);
+      msgIdRef.current = null;
+      chatIdRef.current = "";
+      setMessages([]);
+    }
+  }, [cId]);
 
   const handleSSE = async () => {
-    es.current?.addEventListener("open", () => {
+    esRef.current?.addEventListener("open", () => {
       console.log("event has been opened");
     });
 
-    es.current?.addEventListener("message", (event) => {
+    esRef.current?.addEventListener("message", (event) => {
       const data = JSON.parse(event.data || "{}") as Chunk;
 
       if (data.finished) {
         setPrompt("");
         setMessages((prevState) => {
           const lastMsg = prevState[prevState.length - 1];
-          if (lastMsg && lastMsg.id === msgId.current) {
+          if (lastMsg && lastMsg.id === msgIdRef.current) {
             return [...prevState.slice(0, -1), lastMsg];
           } else {
             return [...prevState];
           }
         });
-        chatIdRef.current = data.chatId || null;
-        es.current?.close();
+        chatIdRef.current = data.chatId || "";
+        esRef.current?.close();
         return;
       }
 
       setMessages((prevState) => {
         const lastMsg = prevState[prevState.length - 1];
-        if (lastMsg && lastMsg.id === msgId.current) {
+        if (lastMsg && lastMsg.id === msgIdRef.current) {
           lastMsg.response += data.chunk;
           lastMsg.isLoading = false;
           return [...prevState.slice(0, -1), lastMsg];
@@ -315,16 +296,15 @@ function Index() {
       });
     });
 
-    es.current?.addEventListener("error", (event) => {
+    esRef.current?.addEventListener("error", (event) => {
       console.log(event);
-      es.current?.close();
+      esRef.current?.close();
     });
 
-    es.current?.addEventListener("close", (event) => {
+    esRef.current?.addEventListener("close", (event) => {
       console.log("event has been closed");
-      setLoading(false);
-      es.current = null;
-      msgId.current = null;
+      esRef.current = null;
+      msgIdRef.current = null;
     });
   };
 
