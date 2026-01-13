@@ -147,13 +147,13 @@ export default function Footer({
               {
                 loading ? (
                   <ActivityIndicator
-                    size="small"
+                    size={"small"}
                     color={theme === "dark" ? "black" : "white"}
                   />
                 ) : (
                   <AntDesign
                     name="arrow-up"
-                    size={18}
+                    size={16}
                     color={theme === "dark" ? "black" : "white"
                     }
                   />
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   inputButtonsContainer: {
     position: "absolute",
-    bottom: 12,
+    bottom: 14,
     right: 22,
     display: "flex",
     flexDirection: "row",

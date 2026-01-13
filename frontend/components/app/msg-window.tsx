@@ -2,14 +2,12 @@ import { useEffect, useRef } from "react";
 import {
   View,
   Image,
-  Dimensions,
-  ActivityIndicator,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
+import { useTheme } from "@/store/theme";
 import { DisplayMsgInterface } from "@/types";
+import Loader from "./loader";
 import Message from "./msg";
-
-const windowWidth = Dimensions.get("window").width;
 
 function ChatWindow({
   messages,
@@ -26,6 +24,8 @@ function ChatWindow({
   startTts: (msgId: string, text: string) => void;
   stopTts: () => void;
 }) {
+  const { value: theme } = useTheme();
+
   const flatListRef = useRef<FlatList>(null);
   const msgIdRef = useRef<string | null>(null);
 
@@ -51,16 +51,8 @@ function ChatWindow({
 
   if (loadingChat) {
     return (
-      <View
-        style={{
-          flex: 1,
-          width: windowWidth,
-          position: "relative",
-          alignContent: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="#1DA1F2" />
+      <View className="flex-1 justify-center items-center">
+        <Loader theme={theme} />
       </View>
     );
   }

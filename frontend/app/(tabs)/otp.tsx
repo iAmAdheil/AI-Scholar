@@ -13,7 +13,7 @@ import { useFocusEffect } from "expo-router";
 import { useConfirmObj } from "@/store/confirm-obj";
 import InputOtp from "@/components/app/input-otp";
 
-function Page() {
+export default function OTP() {
   const { confirmObj } = useConfirmObj();
 
   const [digits, setDigits] = useState<string>("");
@@ -90,8 +90,6 @@ function Page() {
     </View>
   );
 }
-
-export default Page;
 
 const styles = StyleSheet.create({
   logoContainer: {

@@ -1,14 +1,11 @@
-import { Platform, KeyboardAvoidingView } from "react-native";
+import { Platform } from "react-native";
 import { Drawer } from "expo-router/drawer";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/store/theme";
 import SideBar from "@/components/app/sidebar";
 import Avatar from "@/components/app/avatar";
 
 export default function DrawerLayout() {
   const { value: theme } = useTheme();
-  const headerHeight = useHeaderHeight();
   const DRAWER_OPTIONS = {
     headerTitle: "",
     headerShadowVisible: Platform.OS === "android" ? false : true,
@@ -25,26 +22,15 @@ export default function DrawerLayout() {
     },
   };
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1"
-      keyboardVerticalOffset={headerHeight}
+    <Drawer
+      initialRouteName="chat"
+      drawerContent={(props) => <SideBar props={props} />}
+      screenOptions={{ freezeOnBlur: true }}
     >
-      <SafeAreaProvider>
-        <SafeAreaView edges={["bottom"]}
-          style={[{ flex: 1, backgroundColor: theme === "dark" ? "black" : "white" }]}
-        >
-          <Drawer
-            initialRouteName="chat"
-            drawerContent={(props) => <SideBar props={props} />}
-          >
-            <Drawer.Screen
-              name="chat"
-              options={DRAWER_OPTIONS}
-            />
-          </Drawer>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </KeyboardAvoidingView>
+      <Drawer.Screen
+        name="chat"
+        options={DRAWER_OPTIONS}
+      />
+    </Drawer>
   );
 }

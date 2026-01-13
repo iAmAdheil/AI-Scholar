@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { View, KeyboardAvoidingView, Platform } from "react-native";
+import { View, KeyboardAvoidingView, Platform, } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams } from 'expo-router';
 import { useHeaderHeight } from "@react-navigation/elements";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import EventSource from "react-native-sse";
 import Tts from "react-native-tts";
 import { ChunkInterface, DisplayMsgInterface, MsgInterface } from "@/types";
 import { generateId } from "@/utils/unique-id";
 import { useChats } from "@/store/chats";
 import useChatId from "@/store/chat-id";
+import { useTheme } from "@/store/theme";
 import ChatWindow from "@/components/app/msg-window";
 import Footer from "@/components/app/footer";
 
@@ -32,12 +34,13 @@ const formatChat = (convo: MsgInterface[]) => {
   return { messages, lastMId: messages[messages.length - 1].id || "" };
 };
 
-export default function Index() {
+export default function Chat() {
   const { token } = useLocalSearchParams();
   const headerHeight = useHeaderHeight();
 
   const { value: cId, update: updateCId } = useChatId();
   const { value: chats, update: updateChats } = useChats();
+  const { value: theme } = useTheme();
 
   const [loadingChat, setLoadingChat] = useState(false);
   const [streaming, setStreaming] = useState(false);
@@ -222,41 +225,46 @@ export default function Index() {
     await handleSSE();
   };
 
-  const startTts = (msgId: string, text: string) => {
-    Tts.stop();
-    Tts.speak(text);
+  const startTts = async (msgId: string, text: string) => {
+    await Tts.stop();
     setPlayingId(msgId);
+    Tts.speak(text);
   };
 
   const stopTts = async () => {
-    const result = await Tts.stop();
-    console.log(result);
     setPlayingId(null);
+    await Tts.stop();
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      className="flex-1"
       keyboardVerticalOffset={headerHeight}
     >
-      <View className="flex-1">
-        <ChatWindow
-          msgId={msgIdRef.current || ""}
-          loadingChat={loadingChat}
-          messages={messages}
-          playingId={playingId}
-          startTts={startTts}
-          stopTts={stopTts}
-        />
-        <Footer
-          prompt={prompt}
-          setPrompt={setPrompt}
-          handleSend={handleSend}
-          loading={streaming}
-          chatId={cId || ""}
-        />
-      </View>
+      <SafeAreaProvider>
+        <SafeAreaView edges={["bottom"]}
+          style={[{ flex: 1, backgroundColor: theme === "dark" ? "black" : "white" }]}
+        >
+          <View className="flex-1">
+            <ChatWindow
+              msgId={msgIdRef.current || ""}
+              loadingChat={loadingChat}
+              messages={messages}
+              playingId={playingId}
+              startTts={startTts}
+              stopTts={stopTts}
+            />
+            <Footer
+              prompt={prompt}
+              setPrompt={setPrompt}
+              handleSend={handleSend}
+              loading={streaming}
+              chatId={cId || ""}
+            />
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </KeyboardAvoidingView>
   );
 

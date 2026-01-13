@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { StyleSheet } from "react-native";
 import useChatId from "@/store/chat-id";
-import { type Chats } from "@/types";
+import { type DisplayChatsInterface } from "@/types";
 
 export default function Chats({
   chats,
@@ -13,10 +13,10 @@ export default function Chats({
   theme,
 }: {
   theme: ReactNavigation.Theme;
-  chats: Chats;
+  chats: DisplayChatsInterface;
   closeDrawer: () => void;
 }) {
-  const { update: updateCId } = useChatId();
+  const { value: cId, update: updateCId } = useChatId();
 
   const handleChatPress = (chatId: string) => {
     updateCId(chatId);
@@ -33,7 +33,7 @@ export default function Chats({
           <TouchableOpacity
             key={chat._id}
             onPress={() => handleChatPress(chat._id)}
-          >
+            style={[styles.buttonContainer, { backgroundColor: chat._id === cId ? "rgba(255, 255, 255, 0.05)" : "transparent" }]}>
             <Text
               style={[
                 styles.titleText,
@@ -53,11 +53,11 @@ export default function Chats({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     paddingVertical: 16,
     display: "flex",
     flexDirection: "column",
-    gap: 20,
+    gap: 8,
   },
   scrollContentContainer: {
     flex: 1,
@@ -68,6 +68,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
+  },
+  buttonContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 6
   },
   titleText: {
     fontSize: 16,

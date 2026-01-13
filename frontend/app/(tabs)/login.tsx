@@ -17,7 +17,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useConfirmObj } from "@/store/confirm-obj";
 import { useTheme } from "@/store/theme";
 
-function Page() {
+export default function Login() {
   const router = useRouter();
 
   const { value: theme } = useTheme();
@@ -128,7 +128,7 @@ function Page() {
           </TouchableOpacity>
           <View className="w-full" style={styles.bottomContainer}>
             <TouchableOpacity
-              // onPress={googleSignIn}
+              onPress={googleLogin}
               style={[
                 styles.button,
                 {
@@ -147,8 +147,6 @@ function Page() {
     </View>
   );
 }
-
-export default Page;
 
 const styles = StyleSheet.create({
   logoContainer: {
