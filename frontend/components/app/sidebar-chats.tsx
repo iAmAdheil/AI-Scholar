@@ -1,9 +1,7 @@
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
-  View
 } from "react-native";
 import { StyleSheet } from "react-native";
 import useChatId from "@/store/chat-id";
@@ -11,19 +9,17 @@ import { type Chats } from "@/types";
 
 export default function Chats({
   chats,
-  loading,
   closeDrawer,
   theme,
 }: {
   theme: ReactNavigation.Theme;
   chats: Chats;
-  loading: boolean;
   closeDrawer: () => void;
 }) {
-  const { updateChatId } = useChatId();
+  const { update: updateCId } = useChatId();
 
   const handleChatPress = (chatId: string) => {
-    updateChatId(chatId);
+    updateCId(chatId);
     closeDrawer();
   };
 
@@ -32,33 +28,24 @@ export default function Chats({
       style={styles.scrollContentContainer}
       contentContainerStyle={styles.container}
     >
-      {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator
-            size="small"
-            color={theme.dark ? "white" : "black"}
-          />
-        </View>
-      ) : (
-        chats.map((chat: any) => {
-          return (
-            <TouchableOpacity
-              key={chat._id}
-              onPress={() => handleChatPress(chat._id)}
+      {chats.map((chat: { _id: string; title: string }) => {
+        return (
+          <TouchableOpacity
+            key={chat._id}
+            onPress={() => handleChatPress(chat._id)}
+          >
+            <Text
+              style={[
+                styles.titleText,
+                { color: theme.dark ? "white" : "black" },
+              ]}
+              numberOfLines={1}
             >
-              <Text
-                style={[
-                  styles.titleText,
-                  { color: theme.dark ? "white" : "black" },
-                ]}
-                numberOfLines={1}
-              >
-                {chat.title}
-              </Text>
-            </TouchableOpacity>
-          );
-        })
-      )}
+              {chat.title}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -12,7 +11,7 @@ import {
 import { useTheme } from "@react-navigation/native";
 import Entypo from "@expo/vector-icons/Entypo";
 import SideBarChats from "./sidebar-chats";
-import { useChats } from "@/hooks/useChats";
+import { useChats } from "@/store/chats";
 import useChatId from "@/store/chat-id";
 
 export default function SideBar({
@@ -20,22 +19,12 @@ export default function SideBar({
 }: {
   props: DrawerContentComponentProps;
 }) {
-  const drawerStatus = useDrawerStatus();
+  // const drawerStatus = useDrawerStatus();
 
   const theme = useTheme();
 
   const { update: updateCId } = useChatId();
-
-  const [fetch, setFetch] = useState<boolean>(false);
-  const { chats, loading } = useChats(fetch);
-
-  useEffect(() => {
-    if (drawerStatus === "open") {
-      setFetch(true);
-    } else if (drawerStatus === "closed") {
-      setFetch(false);
-    }
-  }, [drawerStatus]);
+  const { value: chats } = useChats();
 
   const handleNew = () => {
     updateCId("");
@@ -74,7 +63,6 @@ export default function SideBar({
       <SideBarChats
         theme={theme}
         chats={chats}
-        loading={loading}
         closeDrawer={closeDrawer}
       />
     </DrawerContentScrollView>

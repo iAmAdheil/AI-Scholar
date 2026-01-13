@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, KeyboardAvoidingView, Platform } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams } from 'expo-router';
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -13,7 +8,7 @@ import Tts from "react-native-tts";
 import { Chunk, Message } from "@/types";
 import { generateId } from "@/utils/unique-id";
 import useChatId from "@/store/chat-id";
-import { type Chat } from "@/types";
+import { Chat } from "@/types";
 import ChatWindow from "@/components/app/chat-window";
 import Footer from "@/components/app/chat-footer";
 
@@ -39,13 +34,11 @@ const formatChat = (convo: Chat) => {
 
 function Index() {
   const { token } = useLocalSearchParams();
-
   const headerHeight = useHeaderHeight();
 
   const { value: cId } = useChatId();
 
   const [loadingChat, setLoadingChat] = useState(false);
-  const [loadingToken, setLoadingToken] = useState(false);
   const [streaming, setStreaming] = useState(false);
 
   const [prompt, setPrompt] = useState("");
@@ -111,32 +104,24 @@ function Index() {
       msgIdRef.current = null;
       chatIdRef.current = null;
       setStreaming(false);
-      setLoadingToken(false);
       setMessages([]);
     }
   }, [cId]);
 
   const handleSSE = async () => {
     esRef.current?.addEventListener("open", () => {
-      console.log("event has been opened");
+      console.log("Event has been opened");
     });
 
     esRef.current?.addEventListener("message", (event) => {
       const data = JSON.parse(event.data || "{}") as Chunk;
-      if (loadingToken) {
-        setLoadingToken(false)
-        setMessages((prevState) => {
-          const lastMsg = prevState[prevState.length - 1];
-          lastMsg.loading = false;
-          return [...prevState.slice(0, -1), lastMsg];
-        });
-      };
 
       if (data.finished) {
         setPrompt("");
         setMessages((prevState) => {
           const lastMsg = prevState[prevState.length - 1];
           if (lastMsg && lastMsg.id === msgIdRef.current) {
+            lastMsg.streaming = false;
             return [...prevState.slice(0, -1), lastMsg];
           } else {
             return [...prevState];
@@ -150,6 +135,9 @@ function Index() {
       setMessages((prevState) => {
         const lastMsg = prevState[prevState.length - 1];
         if (lastMsg && lastMsg.id === msgIdRef.current) {
+          if (lastMsg.loading) {
+            lastMsg.loading = false;
+          }
           lastMsg.response += data.chunk;
           return [...prevState.slice(0, -1), lastMsg];
         } else {
@@ -159,23 +147,34 @@ function Index() {
     });
 
     esRef.current?.addEventListener("error", (event) => {
-      console.log(event);
+      console.log("Error during streaming:", event);
+      setMessages((prevState) => {
+        const lastMsg = prevState[prevState.length - 1];
+        if (lastMsg && lastMsg.id === msgIdRef.current) {
+          lastMsg.streaming = false;
+          lastMsg.loading = false;
+          lastMsg.response = "Some error occured";
+          return [...prevState.slice(0, -1), lastMsg];
+        } else {
+          return [...prevState];
+        }
+      })
       esRef.current?.close();
     });
 
     esRef.current?.addEventListener("close", (event) => {
-      console.log("event has been closed");
+      console.log("Event has been closed");
       esRef.current = null;
       msgIdRef.current = null;
       setStreaming(false);
+      setPrompt("");
     });
   };
 
   const handleSend = async () => {
-    if (loadingToken || streaming) {
+    if (streaming) {
       return;
     }
-    setLoadingToken(true);
     setStreaming(true);
     // Close any existing EventSource connection
     if (esRef.current) {
@@ -195,11 +194,10 @@ function Index() {
     msgIdRef.current = newMsgId;
 
     const payload = {
-      message: prompt,
+      msg: prompt,
     };
     const newES = new EventSource(
       `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/${chatIdRef.current}`,
-      // `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/generate`,
       {
         method: "POST",
         headers: {
@@ -228,59 +226,29 @@ function Index() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1"
+      style={{ flex: 1 }}
       keyboardVerticalOffset={headerHeight}
     >
-      <View className="flex-1" >
+      <View className="flex-1">
         <ChatWindow
-          messages={messages}
           msgId={msgIdRef.current || ""}
           loadingChat={loadingChat}
+          messages={messages}
           playingId={playingId}
           startTts={startTts}
           stopTts={stopTts}
         />
+        <Footer
+          prompt={prompt}
+          setPrompt={setPrompt}
+          handleSend={handleSend}
+          loading={streaming}
+          chatId={cId || ""}
+        />
       </View>
-      <Footer
-        prompt={prompt}
-        setPrompt={setPrompt}
-        handleSend={handleSend}
-        loading={streaming}
-        chatId={cId || ""}
-      />
     </KeyboardAvoidingView>
   );
+
 }
 
 export default Index;
-
-const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1,
-    borderColor: "#282828",
-    borderRadius: 20,
-    paddingLeft: 18,
-    paddingVertical: 12,
-    flexShrink: 0,
-    marginHorizontal: 12,
-    fontSize: 16,
-    fontWeight: "400",
-  },
-  inputButtonsContainer: {
-    position: "absolute",
-    bottom: 12,
-    right: 22,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  sendContainer: {
-    height: 32,
-    width: 32,
-    borderRadius: 18,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

@@ -18,7 +18,7 @@ export default function Message({
   message,
   isUser,
   // isStreaming,
-  isLoading,
+  loading,
   playing,
   startTts,
   stopTts,
@@ -26,8 +26,8 @@ export default function Message({
   id: string;
   message: string;
   isUser: boolean;
-  isStreaming: boolean;
-  isLoading: boolean;
+  // isStreaming: boolean;
+  loading: boolean;
   playing: boolean;
   startTts: (msgId: string, text: string) => void;
   stopTts: () => void;
@@ -88,7 +88,7 @@ export default function Message({
         />
       </View>
       <View style={[styles.messageContainer, { maxWidth: "80%" }]}>
-        {isLoading ? (
+        {loading ? (
           <LoaderKitView
             style={{ width: 22, height: 22, marginTop: 22 }}
             name={"BallPulse"}

@@ -1,17 +1,20 @@
-import { Platform } from "react-native";
+import { Platform, KeyboardAvoidingView } from "react-native";
 import { Drawer } from "expo-router/drawer";
-import { useTheme } from "@react-navigation/native";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "@/store/theme";
 import SideBar from "@/components/app/sidebar";
 import Avatar from "@/components/app/header-avatar";
 
 export default function DrawerLayout() {
-  const theme = useTheme();
+  const { value: theme } = useTheme();
+  const headerHeight = useHeaderHeight();
   const DRAWER_OPTIONS = {
     headerTitle: "",
     headerShadowVisible: Platform.OS === "android" ? false : true,
     headerStyle: {
-      backgroundColor: theme.dark ? "black" : "transparent",
-      borderBottomColor: theme.dark ? "#282828" : "lightgray",
+      backgroundColor: theme === "dark" ? "black" : "transparent",
+      borderBottomColor: theme === "dark" ? "#282828" : "lightgray",
       borderBottomWidth: 0.5,
     },
     headerShown: true,
@@ -22,14 +25,26 @@ export default function DrawerLayout() {
     },
   };
   return (
-    <Drawer
-      initialRouteName="chat"
-      drawerContent={(props) => <SideBar props={props} />}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+      keyboardVerticalOffset={headerHeight}
     >
-      <Drawer.Screen
-        name="chat"
-        options={DRAWER_OPTIONS}
-      />
-    </Drawer>
+      <SafeAreaProvider>
+        <SafeAreaView edges={["bottom"]}
+          style={[{ flex: 1, backgroundColor: theme === "dark" ? "black" : "white" }]}
+        >
+          <Drawer
+            initialRouteName="chat"
+            drawerContent={(props) => <SideBar props={props} />}
+          >
+            <Drawer.Screen
+              name="chat"
+              options={DRAWER_OPTIONS}
+            />
+          </Drawer>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </KeyboardAvoidingView>
   );
 }

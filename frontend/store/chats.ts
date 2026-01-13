@@ -1,20 +1,16 @@
 import { create } from "zustand";
+import { type Chats } from "@/types";
 
-interface Chat {
-  _id: string;
-  title: string;
-}
-
-interface Chats {
-  value: Chat[];
+interface SideChats {
+  value: Chats;
   update: (
-    chats: Chat[]
+    chats: Chats
   ) => void;
 }
 
-export const useChats = create<Chats>((set) => ({
+export const useChats = create<SideChats>((set) => ({
   value: [],
   update: (
-    chats: Chat[]
+    chats: Chats
   ) => set({ value: chats }),
 }));

@@ -1,7 +1,9 @@
 import "@/global.css";
 
-import { View, StyleSheet, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +16,7 @@ import {
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/store/theme";
+import { useChats } from "@/store/chats";
 import Loader from "@/components/ui/loader";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -27,6 +30,7 @@ export default function RootLayout() {
   const { value: theme } = useTheme();
 
   const { route, token, loadRoute } = useAuth();
+  const { update: updateChats } = useChats();
 
   const [splashLoader, setSplashLoader] = useState(true);
 
@@ -45,6 +49,33 @@ export default function RootLayout() {
       }
     }
   }, [route, loadRoute]);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (res.status !== 200) {
+          throw new Error(res.data.message || "Chats could not be fetched");
+        }
+        console.log("Chats fetched successfully");
+        updateChats(res.data.chats);
+      } catch (e: any) {
+        console.log(e.message || "Something went wrong when fetching chats");
+        updateChats([]);
+      }
+    }
+
+    if (token && token.length > 0) {
+      fetchChats();
+    }
+  }, [token])
 
   useEffect(() => {
     if (loaded) {
@@ -71,9 +102,9 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-      <StatusBar hidden={false} style={theme === "dark" ? "light" : "dark"} />
-      <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+        <StatusBar hidden={false} style={theme === "dark" ? "light" : "dark"} />
         <View style={{ flex: 1 }}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -85,9 +116,10 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
           </Stack>
         </View>
-      </TouchableWithoutFeedback>
-    </ThemeProvider >
+      </ThemeProvider >
+    </GestureHandlerRootView>
   );
+
 }
 
 const styles = StyleSheet.create({

@@ -13,7 +13,7 @@ export const Save = async (
   cId?: string | null
 ): Promise<SaveRes> => {
   try {
-    if (!cId) {
+    if (!cId || cId === "null") {
       try {
         const newChat = new Chat({
           fuser: fId,

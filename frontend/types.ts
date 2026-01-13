@@ -21,7 +21,7 @@ export type Chat = {
 }[];
 
 export type Chats = {
+  _id: string;
   title: string;
-  chatId: string;
   createdAt: string;
 }[];

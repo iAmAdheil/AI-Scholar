@@ -21,7 +21,8 @@ export async function GetChats(req: Request, res: Response, next: NextFunction) 
 
 export async function GetChatById(req: Request, res: Response, next: NextFunction) {
   try {
-    const cId = req.params.id;
+    const cId = req.params.cId;
+    console.log("Chat id: ", cId);
     const chat = await Chat.findById(cId);
     if (!chat) {
       throw new Error('Chat with id not found');

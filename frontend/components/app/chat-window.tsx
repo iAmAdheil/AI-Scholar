@@ -4,8 +4,8 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
-  FlatList,
 } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 import { type Message as MessageInterface } from "@/types";
 import Message from "./chat-window-msg";
 
@@ -66,7 +66,7 @@ function ChatWindow({
   }
 
   return (
-    <View style={{ flex: 1, width: windowWidth, position: "relative" }}>
+    <View style={{ flex: 1, width: "100%", position: "relative" }}>
       {messages.length === 0 && (
         <Image
           source={require("@/assets/new-images/logo.png")}
@@ -75,8 +75,10 @@ function ChatWindow({
       )}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        scrollEnabled={true}
         keyExtractor={(item: any) => item.id.toString()}
+        data={messages}
+        keyboardDismissMode="on-drag"
         onScrollBeginDrag={() => {
           msgIdRef.current = null;
         }}
@@ -94,7 +96,9 @@ function ChatWindow({
           flex: 1,
         }}
         contentContainerStyle={{
-          paddingVertical: 20,
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
         }}
         showsVerticalScrollIndicator={true}
         renderItem={({ item }) => (
@@ -102,26 +106,24 @@ function ChatWindow({
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 6,
+              gap: 10,
               marginVertical: 12,
             }}
           >
             <Message
               id={item.id}
-              message={item.prompt}
+              loading={false}
               isUser={true}
-              isStreaming={item.isStreaming}
-              isLoading={false}
+              message={item.prompt}
               playing={playingId === item.id}
               startTts={startTts}
               stopTts={stopTts}
             />
             <Message
               id={item.id}
-              message={item.response}
+              loading={item.loading}
               isUser={false}
-              isStreaming={item.isStreaming}
-              isLoading={item.isLoading}
+              message={item.response}
               playing={playingId === item.id}
               startTts={startTts}
               stopTts={stopTts}
