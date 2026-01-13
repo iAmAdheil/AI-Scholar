@@ -1,4 +1,4 @@
-# A RAG Framework for Research Paper Question Answering
+# AI-Scholar: A RAG Framework for Research Paper Question Answering
  - Presentation/Demo:- https://drive.google.com/file/d/1SgHN49c0P5W3EmVsCPcTXfBjBo9Kb4b2/view
 
 ## Team Members:-
@@ -20,9 +20,8 @@
 
 - **frontend/** – Expo React Native app (Android, iOS, Web)
 - **backend/** – Express + TypeScript API (JWT auth, chat history, SSE proxy)
-- **FastAPI/** – RAG microservice (classification, retrieval, generation)
-- **RAG/** – Python experiments/utilities for RAG
-- **voice/** – Local React Native voice module consumed by the app
+- **service/** – FastAPI RAG microservice (classification, retrieval, generation)
+- **voice-module/** – Local React Native voice module consumed by the app
 
 
 ## Architecture
@@ -128,13 +127,13 @@ npm install
 npm run dev           # default port 3000
 ```
 
-2) FastAPI (RAG)
+2) RAG Service (FastAPI)
 
 ```bash
-cd FastAPI
-python -m venv .venv && . .venv/Scripts/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+cd service
+python -m venv .venv && . .venv/bin/activate  # Unix/macOS: . .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app:app --reload --port 5432
+uvicorn src.app:app --reload --port 5432
 ```
 
 3) ChromaDB (external server)
@@ -146,21 +145,24 @@ uvicorn app:app --reload --port 5432
 ```bash
 cd frontend
 npm install
-EXPO_PUBLIC_BACKEND_URL=http://localhost:3000 npx expo start
+npx expo start
 ```
 
 5) Voice module
 
-- The app depends on the local tarball `../voice/react-native-voice-voice-3.2.4.tgz`. Ensure it exists and installs.
+- The app depends on the local tarball `../voice-module/react-native-voice-voice-3.2.4.tgz`. Ensure it exists and installs.
 
 
 ## API and Streaming
 
-- **Express**
-  - `POST /auth/signin` → `{ token }`
-  - `GET /chat/chats` (Bearer token)
-  - `POST /chat/generate` (SSE proxy) → streams `{ chunk, finished, chatId? }`
-- **FastAPI**
+- **Express (`backend/`)**
+  - `POST /api/v1/auth/login` → `{ token }`
+  - `GET /api/v1/chat/chats` (Bearer token)
+  - `POST /api/v1/chat/generate` (SSE proxy to FastAPI) → streams `{ chunk, finished }`
+  - `POST /api/v1/chat/:cId` (Direct Gemini generation + Persistence) → streams `{ chunk, finished, chatId, title }`
+  - `GET /api/v1/chat/:cId` → Fetch full chat history for a specific conversation
+
+- **RAG Service (`service/`)**
   - `POST /chat/response` (internal) → streams model output consumed by Express
 
 SSE payload envelope:
@@ -197,9 +199,19 @@ SSE payload envelope:
 ## Repository Structure
 
 ```
-SES/
-├─ backend/
-├─ FastAPI/
-├─ RAG/
-├─ frontend/
-└─ voice/
+AI-Scholar/
+├─ backend/       # Express + TypeScript (Auth & Proxy)
+├─ service/       # FastAPI + LangChain (RAG Pipeline)
+├─ frontend/      # Expo React Native (Mobile App)
+├─ voice-module/  # Native Voice Integration
+└─ project.md     # Detailed Specs & Updates
+```
+
+## What's New in v2
+
+Compared to v1, this release includes:
+- **End-to-End RAG Service**: A new FastAPI pipeline with Gemini-powered query classification, ChromaDB retrieval, and Semantic Scholar fallbacks.
+- **Real-time Chat Persistence**: Express now proxies SSE responses and saves each turn in MongoDB for history replay.
+- **Voice-First Interaction**: Integrated native voice capture (`@react-native-voice/voice`) and TTS playback for hands-free use.
+- **Secure Auth Flow**: Firebase phone OTP + Google sign-in wired into backend JWT issuance.
+- **Mobile UX Overhaul**: Polished chat UI with markdown rendering, dark mode, and improved navigation (Drawer + Tabs).
