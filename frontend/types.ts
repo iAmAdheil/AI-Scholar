@@ -1,11 +1,12 @@
-export interface Chunk {
+export interface ChunkInterface {
   chunk?: string;
   finished: boolean;
+  title?: string;
   entire_msg?: string;
   chatId?: string;
 }
 
-export interface Message {
+export interface DisplayMsgInterface {
   id: string;
   prompt: string;
   response: string;
@@ -13,14 +14,14 @@ export interface Message {
   streaming: boolean;
 }
 
-export type Chat = {
+export type MsgInterface = {
   _id: string;
   isUser: boolean;
   message: string;
   createdAt: string;
-}[];
+};
 
-export type Chats = {
+export type DisplayChatsInterface = {
   _id: string;
   title: string;
   createdAt: string;

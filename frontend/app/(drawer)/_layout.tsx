@@ -4,7 +4,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/store/theme";
 import SideBar from "@/components/app/sidebar";
-import Avatar from "@/components/app/header-avatar";
+import Avatar from "@/components/app/avatar";
 
 export default function DrawerLayout() {
   const { value: theme } = useTheme();

@@ -6,8 +6,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { type Message as MessageInterface } from "@/types";
-import Message from "./chat-window-msg";
+import { DisplayMsgInterface } from "@/types";
+import Message from "./msg";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -20,7 +20,7 @@ function ChatWindow({
   stopTts,
 }: {
   msgId: string;
-  messages: MessageInterface[];
+  messages: DisplayMsgInterface[];
   loadingChat: boolean;
   playingId: string | null;
   startTts: (msgId: string, text: string) => void;

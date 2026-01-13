@@ -4,6 +4,7 @@ interface SaveRes {
   type: "success" | "error";
   savedCId: string | null;
   msg: string;
+  title: string | null;
 }
 
 export const Save = async (
@@ -33,6 +34,7 @@ export const Save = async (
         return {
           type: "success",
           savedCId: chat._id.toString(),
+          title: user_query,
           msg: "Chat saved successfully",
         };
       } catch (error) {
@@ -40,6 +42,7 @@ export const Save = async (
         return {
           type: "error",
           savedCId: null,
+          title: null,
           msg: "Failed to save chat",
         };
       }
@@ -49,6 +52,7 @@ export const Save = async (
       return {
         type: "error",
         savedCId: null,
+        title: null,
         msg: "Chat not found",
       };
     }
@@ -67,13 +71,15 @@ export const Save = async (
     return {
       type: "success",
       savedCId: chat._id.toString(),
-      msg: "Chat saved successfully",
+      title: null,
+      msg: "Chat updated successfully",
     };
   } catch (error) {
     console.log(error);
     return {
       type: "error",
       savedCId: null,
+      title: null,
       msg: "Failed to save chat",
     };
   }

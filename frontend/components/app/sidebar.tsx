@@ -10,7 +10,7 @@ import {
 } from "@react-navigation/drawer";
 import { useTheme } from "@react-navigation/native";
 import Entypo from "@expo/vector-icons/Entypo";
-import SideBarChats from "./sidebar-chats";
+import SideBarChats from "./chats";
 import { useChats } from "@/store/chats";
 import useChatId from "@/store/chat-id";
 

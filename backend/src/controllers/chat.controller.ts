@@ -141,6 +141,7 @@ export async function GenerateResV2(req: Request, res: Response, next: NextFunct
         full_msg: generated,
         finished: true,
         chatId: saveResponse.savedCId,
+        title: saveResponse.title ? saveResponse.title : "",
       })}\n\n`
     );
   } catch (e: any) {

@@ -5,14 +5,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { useHeaderHeight } from "@react-navigation/elements";
 import EventSource from "react-native-sse";
 import Tts from "react-native-tts";
-import { Chunk, Message } from "@/types";
+import { ChunkInterface, DisplayMsgInterface, MsgInterface } from "@/types";
 import { generateId } from "@/utils/unique-id";
+import { useChats } from "@/store/chats";
 import useChatId from "@/store/chat-id";
-import { Chat } from "@/types";
-import ChatWindow from "@/components/app/chat-window";
-import Footer from "@/components/app/chat-footer";
+import ChatWindow from "@/components/app/msg-window";
+import Footer from "@/components/app/footer";
 
-const formatChat = (convo: Chat) => {
+const formatChat = (convo: MsgInterface[]) => {
   const messages = [];
 
   for (let i = 0; i < convo.length / 2; i++) {
@@ -32,17 +32,18 @@ const formatChat = (convo: Chat) => {
   return { messages, lastMId: messages[messages.length - 1].id || "" };
 };
 
-function Index() {
+export default function Index() {
   const { token } = useLocalSearchParams();
   const headerHeight = useHeaderHeight();
 
-  const { value: cId } = useChatId();
+  const { value: cId, update: updateCId } = useChatId();
+  const { value: chats, update: updateChats } = useChats();
 
   const [loadingChat, setLoadingChat] = useState(false);
   const [streaming, setStreaming] = useState(false);
 
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<DisplayMsgInterface[]>([]);
 
   const [playingId, setPlayingId] = useState<string | null>(null);
 
@@ -62,7 +63,7 @@ function Index() {
           },
         );
 
-        const convo: Chat = res.data.chat.conversation || [];
+        const convo: MsgInterface[] = res.data.chat.conversation || [];
         const { messages, lastMId } = formatChat(convo);
 
         setMessages(messages);
@@ -114,7 +115,7 @@ function Index() {
     });
 
     esRef.current?.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data || "{}") as Chunk;
+      const data = JSON.parse(event.data || "{}") as ChunkInterface;
 
       if (data.finished) {
         setPrompt("");
@@ -128,6 +129,16 @@ function Index() {
           }
         });
         chatIdRef.current = data.chatId || "";
+        updateCId(data.chatId || "");
+        if (data.title && data.title.length > 0) {
+          const UChats = [...chats];
+          UChats.unshift({
+            _id: data.chatId || "",
+            title: data.title || "",
+            createdAt: new Date().toString(),
+          })
+          updateChats(UChats);
+        }
         esRef.current?.close();
         return;
       }
@@ -183,7 +194,7 @@ function Index() {
     }
 
     const newMsgId = generateId();
-    const newMsg: Message = {
+    const newMsg: DisplayMsgInterface = {
       id: newMsgId,
       prompt: prompt,
       response: "",
@@ -250,5 +261,3 @@ function Index() {
   );
 
 }
-
-export default Index;

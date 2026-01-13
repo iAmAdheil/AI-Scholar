@@ -17,7 +17,7 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/store/theme";
 import { useChats } from "@/store/chats";
-import Loader from "@/components/ui/loader";
+import Loader from "@/components/app/loader";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
