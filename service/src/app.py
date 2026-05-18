@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import chat
+from ingestion.routers import ingestion as ingestion_router
 
 app = FastAPI()
 app.add_middleware(
@@ -19,6 +20,13 @@ async def root():
 
 
 app.include_router(chat.router)
+app.include_router(ingestion_router.router)
+
+try:
+    from eval.router import router as eval_router  # type: ignore
+    app.include_router(eval_router)
+except Exception:
+    pass
 
 
 if __name__ == "__main__":

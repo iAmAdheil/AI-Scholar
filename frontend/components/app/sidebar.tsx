@@ -11,6 +11,7 @@ import {
 import { useTheme } from "@react-navigation/native";
 import Entypo from "@expo/vector-icons/Entypo";
 import SideBarChats from "./chats";
+import UploadPaper from "./upload-paper";
 import { useChats } from "@/store/chats";
 import useChatId from "@/store/chat-id";
 
@@ -60,6 +61,7 @@ export default function SideBar({
           New Chat
         </Text>
       </TouchableOpacity>
+      <UploadPaper />
       <SideBarChats
         theme={theme}
         chats={chats}

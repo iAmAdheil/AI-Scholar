@@ -24,22 +24,31 @@ async def genRAG(user_query: str):
             contents=f"""
             Context: {rag_context}\n\n
             Question: {user_query}\n\n
-            
+
             ---
 
             **Strict Rules (MUST follow exactly):**
 
-            1. **Source-of-Truth Rule**:  
-            - **ONLY** use information explicitly present in the **Provided Context** above.  
+            1. **Source-of-Truth Rule**:
+            - **ONLY** use information explicitly present in the **Provided Context** above.
             - **DO NOT** invent, infer, recall from training data, or hallucinate any facts, numbers, names, or details not directly stated in the context.
 
-            2. **Insufficient Context Rule**:  
-            - If the context does **not** contain enough information to answer the question **accurately and completely**, respond **only** with:  
+            2. **Insufficient Context Rule**:
+            - If the context does **not** contain enough information to answer the question **accurately and completely**, respond **only** with:
                 > **"Sorry but cannot answer your question at the moment"**
                 and add a reason as to why you felt the context is insufficient to answer the user's query.
             - Do **not** guess, partially answer, or suggest external sources.
 
-            3. **Answer Formatting Rules**:
+            3. **Citation Rule** (critical):
+            - The Context above is composed of chunks. Each chunk begins with a header of the form
+              `[^n] (Title; Authors; Year) — URL`. Use exactly those `[^n]` markers when citing.
+            - Every factual claim or quoted excerpt must end with the matching `[^n]` marker (e.g., "Transformers use multi-head attention[^2].").
+            - Do **not** invent citation numbers. Do **not** cite chunks that you did not actually use.
+            - End the answer with a `## References` section listing every cited `[^n]`, one per line, in the format:
+              `[^n]: Title — Authors (Year). URL` (omit fields that are absent in the chunk header).
+            - If the Context contains no `[^n]` headers, omit the References section but still follow the Source-of-Truth Rule.
+
+            4. **Answer Formatting Rules**:
             - Use **clear, concise, and structured** Markdown formatting:
                 - **Bold** for key terms or emphasis
                 - *Italics* for definitions or subtle points
@@ -48,7 +57,7 @@ async def genRAG(user_query: str):
                 - Tables when comparing data
                 - LaTeX equations via `$$...$$` if needed (e.g., $$  E = mc^2  $$)
             - Quote direct excerpts from context using `> blockquotes` when referencing evidence.
-            - Keep answers **under 300 words** unless the question demands detail.
+            - Keep the main answer **under 300 words** (the References section does not count toward the limit).
 
             **Now, answer the question using only the context and rules above.**
             """,

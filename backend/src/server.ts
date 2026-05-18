@@ -4,6 +4,7 @@ import cors from 'cors';
 
 import authRouter from './routes/auth.routes';
 import chatRouter from './routes/chat.routes';
+import papersRouter from './routes/papers.routes';
 import Auth from './middlewares/auth.middleware';
 
 import { MONGODB_CONNECTION_STRING, PORT } from './config';
@@ -24,6 +25,7 @@ app.get('/', (req, res, next) => {
 });
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/chat', Auth, chatRouter);
+app.use('/api/v1/papers', Auth, papersRouter);
 app.listen(PORT || 3000, () => {
   console.log(`Listening on port ${PORT || 3000}`);
 });
