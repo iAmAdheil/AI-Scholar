@@ -1,15 +1,14 @@
-import os, io, requests, PyPDF2
+import io, requests, PyPDF2
 from typing import List
 
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
-from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 import faiss
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyD336MYSkpfIK0J6kAbgse9D32jblhtsdk"
+from ..config import GEMINI_EMBED_MODEL  # noqa: F401  # ensures GOOGLE_API_KEY is set via config import
 
 def extract_pdf(pdf_url: str, max_pages: int = 10) -> FAISS:
     try:    
@@ -56,7 +55,7 @@ def extract_pdf(pdf_url: str, max_pages: int = 10) -> FAISS:
         for idx, chunk in enumerate(chunks):
             chunk.metadata["chunk_idx"] = idx
     
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+        embeddings = GoogleGenerativeAIEmbeddings(model=f"models/{GEMINI_EMBED_MODEL}")
         embedding_dim = len(embeddings.embed_query("hello world"))
         index = faiss.IndexFlatL2(embedding_dim)
         

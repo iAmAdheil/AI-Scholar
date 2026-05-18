@@ -1,5 +1,4 @@
 import requests
-import requests
 
 from pydantic import BaseModel, Field
 import chromadb
@@ -7,21 +6,75 @@ import chromadb.utils.embedding_functions as embedding_functions
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
 
+from ..config import (
+    GEMINI_KEY,
+    GEMINI_GEN_MODEL,
+    GEMINI_EMBED_MODEL,
+    CHROMA_HOST,
+    CHROMA_PORT,
+    CHROMA_COLLECTION,
+)
 from . import helpers
+from . import rerank as rerank_mod
+
+
+KB_FETCH_K = 20
+KB_RETURN_K = 5
 
 google_ef = embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-    api_key="AIzaSyD336MYSkpfIK0J6kAbgse9D32jblhtsdk",
-    model_name="gemini-embedding-001",  # Set the model explicitly
+    api_key=GEMINI_KEY,
+    model_name=GEMINI_EMBED_MODEL,
 )
 
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
-chroma_client.heartbeat()
+chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
 model = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",  # or "gemini-1.5-flash" for faster responses
-    google_api_key="AIzaSyD336MYSkpfIK0J6kAbgse9D32jblhtsdk",
-    temperature=0.1,  # Lower for more factual responses
+    model=GEMINI_GEN_MODEL,
+    google_api_key=GEMINI_KEY,
+    temperature=0.1,
 )
+
+
+def _format_chunk_for_agent(idx: int, chunk: dict) -> str:
+    md = chunk.get("metadata") or {}
+    title = md.get("title") or "Unknown title"
+    authors = md.get("authors") or "Unknown authors"
+    year = md.get("year")
+    url = md.get("url") or md.get("doi") or md.get("arxiv_id") or ""
+    header = f"[^{idx}] ({title}; {authors}" + (f"; {year}" if year else "") + ")"
+    if url:
+        header += f" — {url}"
+    text = chunk.get("text") or ""
+    return f"{header}\n{text}"
+
+
+def retrieve_chunks(query: str) -> list:
+    """Internal helper: returns a list of {text, metadata} chunks after reranking.
+
+    Empty list on miss or error.
+    """
+    try:
+        collection = chroma_client.get_or_create_collection(
+            name=CHROMA_COLLECTION, embedding_function=google_ef
+        )
+        result = collection.query(
+            query_texts=[query],
+            n_results=KB_FETCH_K,
+            include=["documents", "metadatas"],
+        )
+    except Exception as e:
+        print(f"[kb_retrieval] chroma query failed: {e}")
+        return []
+
+    docs = (result.get("documents") or [[]])[0]
+    metas = (result.get("metadatas") or [[]])[0]
+    if not docs:
+        return []
+
+    candidates = [
+        {"text": d, "metadata": m or {}} for d, m in zip(docs, metas)
+    ]
+    return rerank_mod.rerank(query, candidates, top_k=KB_RETURN_K)
 
 
 @tool
@@ -30,30 +83,17 @@ def kb_retrieval(query: str) -> str:
       **PRIMARY SOURCE**: Retrieve stored full-text, abstract, or summary of research papers from the internal knowledge base.
 
       **Use this FIRST** for any question related to research.
-      - Returns exact stored document chunks (up to 5 most relevant).
-      - Each chunk is separated by "---".
-      - If no match: returns empty or error.
-      - **Never skip this step** when answering research related questions.
+      - Returns up to 5 chunks, each prefixed with a `[^n]` citation marker and a header containing title, authors, year, and URL.
+      - Chunks are separated by a line of dashes.
+      - The downstream answer must keep the `[^n]` markers inline.
+      - If no match: returns the literal string "No relevant context could be retrieved.".
     """
-    try:
-        # embed query and get k nearest neighbours -> use retrieval techniques to improve context retrieval
-        collection = chroma_client.get_or_create_collection(
-            name="research_papers", embedding_function=google_ef
-        )
-        result = collection.query(
-            query_texts=[query], n_results=5, include=["documents"]
-        )
+    chunks = retrieve_chunks(query)
+    if not chunks:
+        return "No relevant context could be retrieved."
 
-        retrieved_documents = result["documents"][0]
-
-        # Merge the list of documents into a single string, typically separated by newlines or a delimiter.
-        # The delimiter "---" helps the subsequent LLM distinguish between individual documents.
-        merged_docs_string = "\n---\n".join(retrieved_documents)
-
-        # 5. Return the Merged String
-        return merged_docs_string
-    except Exception as e:
-        return f"Error retrieving documents from the knowledge base: {str(e)}"
+    parts = [_format_chunk_for_agent(i + 1, c) for i, c in enumerate(chunks)]
+    return "\n\n---\n\n".join(parts)
 
 
 class SearchInput(BaseModel):

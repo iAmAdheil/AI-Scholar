@@ -56,10 +56,38 @@ Chain: React Native → Express (JWT + SSE) → FastAPI (RAG) → ChromaDB/Gemin
 
 ## Ingestion & Knowledge Base
 
-- **Persistent KB**: External ChromaDB HTTP server (`http://localhost:8000`) seeded offline with de-duplicated research paper chunks (~1k tokens, 200 token overlap) and metadata (title, authors, venue, URL/DOI).
+- **Persistent KB**: External ChromaDB HTTP server (`http://localhost:8000`) populated by the in-repo ingestion pipeline (`service/src/ingestion/`). Chunks are ~1k tokens with 200-token overlap; metadata includes title, authors, venue, year, categories, source, DOI/arxiv_id, and a `canonical_id` used for dedupe.
 - **Embeddings**: GoogleGenerativeAiEmbeddingFunction with `gemini-embedding-001`.
+- **Sources**: arXiv (Kaggle bootstrap + OAI-PMH delta), Semantic Scholar bulk search, and authenticated user PDF uploads from the app.
+- **Workers**: RQ + Redis. A separate worker process consumes the `ingestion` queue and processes papers asynchronously; the SQLite ledger at `service/data/ingestion_ledger.sqlite` makes runs resumable.
 - **Live Enrichment**: The specific-paper tool downloads up to 10 PDF pages via Semantic Scholar, chunks with `RecursiveCharacterTextSplitter`, embeds using LangChain FAISS, and answers directly from those slices.
 - **MongoDB Atlas**: Stores users, chat titles, and message history (user/assistant turns with timestamps).
+
+### Ingestion CLI
+
+Run from `service/`:
+
+```bash
+# arXiv bootstrap from Kaggle JSONL dump
+python -m src.ingestion.cli arxiv --bootstrap --kaggle path/to/arxiv-metadata.json.gz --limit 25000
+
+# arXiv OAI-PMH delta sync
+python -m src.ingestion.cli arxiv --oai --since 2025-01-01 --oai-set cs --limit 1000
+
+# Semantic Scholar bulk search
+python -m src.ingestion.cli s2 --query "transformer architecture" --limit 2000 --min-citations 5
+
+# Single local PDF (smoke test, sync)
+python -m src.ingestion.cli ingest-file ./paper.pdf
+
+# RQ worker (in a separate process)
+python -m src.ingestion.cli worker     # or: rq worker ingestion
+
+# Ledger status
+python -m src.ingestion.cli status
+```
+
+Add `--sync` to any source command to run inline (skip the queue) for smoke tests.
 
 
 ## Safety & Fidelity
@@ -109,11 +137,17 @@ FASTAPI_BASE_URL="http://localhost:5432"
 
 These map to `frontend/firebase-config.js` and API hooks (e.g., `${process.env.EXPO_PUBLIC_BACKEND_URL}/chat/chats`).
 
-### FastAPI (`FastAPI/.env` or environment)
+### FastAPI (`service/.env` — see `service/.env.example`)
 
-- `GOOGLE_GENAI_API_KEY` – Gemini API key
-- `CHROMA_HTTP_URL` – e.g., `http://localhost:8000`
+- `GEMINI_KEY` – Gemini API key
+- `GEMINI_MODEL` – classifier model (default `gemini-2.5-flash`)
+- `GEMINI_GEN_MODEL` – generation model (default `gemini-2.0-flash`)
+- `GEMINI_EMBED_MODEL` – embedding model (default `gemini-embedding-001`)
+- `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_COLLECTION` – Chroma HTTP server
+- `REDIS_URL`, `RQ_QUEUE` – ingestion queue
 - `SEMANTIC_SCHOLAR_API_KEY` – optional (higher limits)
+- `UPLOAD_DIR`, `DATA_DIR` – local storage paths (default under `service/data/`)
+- `RERANKER_ENABLED` (default `true`), `RERANKER_MODEL` (default `BAAI/bge-reranker-base`)
 
 
 ## Setup & Run (Development)
@@ -163,7 +197,15 @@ npx expo start
   - `GET /api/v1/chat/:cId` → Fetch full chat history for a specific conversation
 
 - **RAG Service (`service/`)**
-  - `POST /chat/response` (internal) → streams model output consumed by Express
+  - `POST /fastapi/chat/generate` (internal) → streams model output consumed by Express
+  - `POST /fastapi/ingest/upload` → accept a multipart PDF, enqueue ingestion, return `{ job_id, canonical_id }`
+  - `GET  /fastapi/ingest/status/{job_id}` → RQ + ledger status for a queued ingestion
+  - `GET  /fastapi/ingest/ledger` → recent ledger rows + counts
+  - `GET  /fastapi/eval/run` → retrieval benchmark (hit@5, MRR@10, p50/p95 latency)
+
+- **Backend additions for ingestion**
+  - `POST /api/v1/papers/upload` (Bearer token, multipart PDF) → proxies to FastAPI ingest
+  - `GET  /api/v1/papers/status/:jobId` → proxies to FastAPI ingest status
 
 SSE payload envelope:
 
@@ -182,8 +224,9 @@ SSE payload envelope:
 
 ## Current Gaps & Roadmap
 
-- Chroma ingestion scripts live outside the repo; automation for PDF ingestion is planned.
-- Evaluation metrics (latency, retrieval hit rate) not yet exposed; SSE payloads reserve space for diagnostics.
+- Hybrid retrieval (BM25 + vector) is intentionally deferred; reranker covers most of the gap until a corpus migration to a BM25-capable store.
+- Full-text ingestion is capped at abstract + intro + first ~3 sections per paper to control embedding cost; expand once eval shows it's needed.
+- Scanned PDFs are skipped (`status=skipped_ocr`); OCR is out of scope for v1.
 - Multilingual retrieval relies on Gemini embeddings; UI translations not implemented.
 - Model comparisons (multi-LLM) are out of scope for the current implementation.
 
